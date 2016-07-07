@@ -1,0 +1,14 @@
+[2016-07-07 16:22:43,967] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:22:44,806] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:22:45,044] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 16:22:45,158] {models.py:1219} INFO - Executing <Task(BashOperator): clean_street_codes> on 2015-06-02 00:00:00
+[2016-07-07 16:22:45,277] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 16:22:45,280] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmp3WjPA5//tmp/airflowtmp3WjPA5/clean_street_codesi2fOfO
+[2016-07-07 16:22:45,280] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.stcode | phl-street-codes > /tmp/tmpZbg1fi/street_codes.csv
+[2016-07-07 16:22:45,285] {bash_operator.py:73} INFO - Output:
+[2016-07-07 16:22:45,386] {bash_operator.py:80} INFO - Command exited with return code 0

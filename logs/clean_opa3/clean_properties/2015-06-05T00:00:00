@@ -1,0 +1,31 @@
+[2016-07-07 16:23:23,466] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:23:24,271] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:23:24,655] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 16:23:24,712] {models.py:1219} INFO - Executing <Task(BashOperator): clean_properties> on 2015-06-05 00:00:00
+[2016-07-07 16:23:24,727] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 16:23:24,728] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpHY7LtL//tmp/airflowtmpHY7LtL/clean_propertiesgesdS0
+[2016-07-07 16:23:24,728] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.os13sd | phl-properties > /tmp/tmpcE1s0p/properties.csv
+[2016-07-07 16:23:24,731] {bash_operator.py:73} INFO - Output:
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - Traceback (most recent call last):
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - File "/usr/local/bin/phl-properties", line 5, in <module>
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - properties.main()
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - File "/usr/local/lib/python2.7/dist-packages/phl_property/properties.py", line 79, in main
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - writer.writerow(row)
+[2016-07-07 16:25:30,784] {bash_operator.py:77} INFO - File "/usr/lib/python2.7/csv.py", line 152, in writerow
+[2016-07-07 16:25:30,825] {bash_operator.py:77} INFO - return self.writer.writerow(self._dict_to_list(rowdict))
+[2016-07-07 16:25:30,825] {bash_operator.py:77} INFO - IOError: [Errno 28] No space left on device
+[2016-07-07 16:25:30,828] {bash_operator.py:80} INFO - Command exited with return code 1
+[2016-07-07 16:25:30,828] {models.py:1286} ERROR - Bash command failed
+Traceback (most recent call last):
+  File "/home/nwebz/venv/local/lib/python2.7/site-packages/airflow/models.py", line 1245, in run
+    result = task_copy.execute(context=context)
+  File "/home/nwebz/venv/lib/python2.7/site-packages/airflow/operators/bash_operator.py", line 83, in execute
+    raise AirflowException("Bash command failed")
+AirflowException: Bash command failed
+[2016-07-07 16:25:30,830] {models.py:1298} INFO - Marking task as UP_FOR_RETRY
+[2016-07-07 16:25:30,894] {models.py:1327} ERROR - Bash command failed

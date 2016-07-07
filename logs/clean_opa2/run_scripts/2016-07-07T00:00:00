@@ -1,0 +1,78 @@
+[2016-07-07 15:42:30,255] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:42:31,262] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:42:31,589] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 15:42:31,671] {models.py:1219} INFO - Executing <Task(BashOperator): run_scripts> on 2016-07-07 00:00:00
+[2016-07-07 15:42:31,705] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 15:42:31,706] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpN4TLHM//tmp/airflowtmpN4TLHM/run_scriptszeVEk6
+[2016-07-07 15:42:31,706] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br65trf.os13sd | phl-properites > properties.csv
+  cat ~/opa_data/br63trf.buildcod | phl-building-codes > /tmp/tmpxw4gcn/building_codes.csv
+  cat ~/opa_data/br63trf.stcode | phl-street-codes > /tmp/tmpxw4gcn/street_codes.csv
+  cat ~/opa_data/br63trf.offpr | phl-off-property > /tmp/tmpxw4gcn/off_property.csv
+  cat ~/opa_data/br63trf.nicrt4wb | phl-assessment-history > /tmp/tmpxw4gcn/assessment_history.csv
+[2016-07-07 15:42:31,710] {bash_operator.py:73} INFO - Output:
+[2016-07-07 15:42:31,712] {bash_operator.py:77} INFO - /tmp/airflowtmpN4TLHM/run_scriptszeVEk6: line 1: phl-properites: command not found
+[2016-07-07 15:42:31,713] {bash_operator.py:77} INFO - cat: /home/nwebz/opa_data/br65trf.os13sd: No such file or directory
+[2016-07-07 15:42:37,913] {bash_operator.py:80} INFO - Command exited with return code 0
+[2016-07-07 15:46:30,933] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:46:31,780] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:46:31,893] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 15:46:31,967] {models.py:1219} INFO - Executing <Task(BashOperator): run_scripts> on 2016-07-07 00:00:00
+[2016-07-07 15:46:31,993] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 15:46:31,994] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpdPEGP9//tmp/airflowtmpdPEGP9/run_scriptskcj0jj
+[2016-07-07 15:46:31,994] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.os13sd | phl-properites > properties.csv
+  cat ~/opa_data/br63trf.buildcod | phl-building-codes > /tmp/tmpiGgC7W/building_codes.csv
+  cat ~/opa_data/br63trf.stcode | phl-street-codes > /tmp/tmpiGgC7W/street_codes.csv
+  cat ~/opa_data/br63trf.offpr | phl-off-property > /tmp/tmpiGgC7W/off_property.csv
+  cat ~/opa_data/br63trf.nicrt4wb | phl-assessment-history > /tmp/tmpiGgC7W/assessment_history.csv
+[2016-07-07 15:46:31,997] {bash_operator.py:73} INFO - Output:
+[2016-07-07 15:46:31,999] {bash_operator.py:77} INFO - /tmp/airflowtmpdPEGP9/run_scriptskcj0jj: line 1: phl-properites: command not found
+[2016-07-07 15:46:32,027] {bash_operator.py:77} INFO - cat: write error: Broken pipe
+[2016-07-07 15:46:38,066] {bash_operator.py:80} INFO - Command exited with return code 0
+[2016-07-07 15:49:01,120] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:49:01,898] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:49:02,006] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 15:49:02,056] {models.py:1219} INFO - Executing <Task(BashOperator): run_scripts> on 2016-07-07 00:00:00
+[2016-07-07 15:49:02,080] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 15:49:02,081] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpij29_z//tmp/airflowtmpij29_z/run_scriptsXYdud3
+[2016-07-07 15:49:02,081] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.os13sd | phl-properites > properties.csv
+  cat ~/opa_data/br63trf.buildcod | phl-building-codes > /tmp/tmp0v2vC9/building_codes.csv
+  cat ~/opa_data/br63trf.stcode | phl-street-codes > /tmp/tmp0v2vC9/street_codes.csv
+  cat ~/opa_data/br63trf.offpr | phl-off-property > /tmp/tmp0v2vC9/off_property.csv
+  cat ~/opa_data/br63trf.nicrt4wb | phl-assessment-history > /tmp/tmp0v2vC9/assessment_history.csv
+[2016-07-07 15:49:02,084] {bash_operator.py:73} INFO - Output:
+[2016-07-07 15:49:02,086] {bash_operator.py:77} INFO - /tmp/airflowtmpij29_z/run_scriptsXYdud3: line 1: phl-properites: command not found
+[2016-07-07 15:49:02,087] {bash_operator.py:77} INFO - cat: write error: Broken pipe
+[2016-07-07 15:49:07,324] {bash_operator.py:80} INFO - Command exited with return code 0
+[2016-07-07 15:50:58,830] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:50:59,610] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 15:50:59,719] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 15:50:59,775] {models.py:1219} INFO - Executing <Task(BashOperator): run_scripts> on 2016-07-07 00:00:00
+[2016-07-07 15:50:59,798] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 15:50:59,799] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpqGoXjx//tmp/airflowtmpqGoXjx/run_scriptsclx3dR
+[2016-07-07 15:50:59,799] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.os13sd | phl-properties > properties.csv
+  cat ~/opa_data/br63trf.buildcod | phl-building-codes > /tmp/tmpyINqTy/building_codes.csv
+  cat ~/opa_data/br63trf.stcode | phl-street-codes > /tmp/tmpyINqTy/street_codes.csv
+  cat ~/opa_data/br63trf.offpr | phl-off-property > /tmp/tmpyINqTy/off_property.csv
+  cat ~/opa_data/br63trf.nicrt4wb | phl-assessment-history > /tmp/tmpyINqTy/assessment_history.csv
+[2016-07-07 15:50:59,802] {bash_operator.py:73} INFO - Output:
+[2016-07-07 15:52:58,433] {bash_operator.py:80} INFO - Command exited with return code 0

@@ -1,0 +1,50 @@
+[2016-07-06 11:44:26,493] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/example_dags/tutorial.py
+[2016-07-06 11:44:27,465] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/example_dags/tutorial.py
+[2016-07-06 11:44:27,616] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-06 11:44:27,684] {models.py:1219} INFO - Executing <Task(BashOperator): templated> on 2015-06-01 00:00:00
+[2016-07-06 11:44:27,701] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-06 11:44:27,702] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpIg3sxa//tmp/airflowtmpIg3sxa/templatedqaKy6o
+[2016-07-06 11:44:27,702] {bash_operator.py:65} INFO - Running command: 
+
+    echo "2015-06-01"
+    echo "2015-06-08"
+    echo "Parameter I passed in"
+
+    echo "2015-06-01"
+    echo "2015-06-08"
+    echo "Parameter I passed in"
+
+    echo "2015-06-01"
+    echo "2015-06-08"
+    echo "Parameter I passed in"
+
+    echo "2015-06-01"
+    echo "2015-06-08"
+    echo "Parameter I passed in"
+
+    echo "2015-06-01"
+    echo "2015-06-08"
+    echo "Parameter I passed in"
+
+[2016-07-06 11:44:27,706] {bash_operator.py:73} INFO - Output:
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - 2015-06-01
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - 2015-06-08
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - Parameter I passed in
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - 2015-06-01
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - 2015-06-08
+[2016-07-06 11:44:27,707] {bash_operator.py:77} INFO - Parameter I passed in
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-01
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-08
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - Parameter I passed in
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-01
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-08
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - Parameter I passed in
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-01
+[2016-07-06 11:44:27,708] {bash_operator.py:77} INFO - 2015-06-08
+[2016-07-06 11:44:27,709] {bash_operator.py:77} INFO - Parameter I passed in
+[2016-07-06 11:44:27,709] {bash_operator.py:80} INFO - Command exited with return code 0

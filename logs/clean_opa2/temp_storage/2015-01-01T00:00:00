@@ -1,0 +1,9 @@
+[2016-07-07 14:47:28,451] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 14:47:29,226] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa.py
+[2016-07-07 14:47:29,330] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 14:47:29,389] {models.py:1219} INFO - Executing <Task(PythonOperator): temp_storage> on 2015-01-01 00:00:00
+[2016-07-07 14:47:29,397] {python_operator.py:67} INFO - Done. Returned value was: /tmp/tmp6ZcMOU

@@ -1,0 +1,14 @@
+[2016-07-07 16:22:49,927] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:22:50,760] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/clean_opa3.py
+[2016-07-07 16:22:50,880] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-07 16:22:50,999] {models.py:1219} INFO - Executing <Task(BashOperator): clean_off_property> on 2015-06-02 00:00:00
+[2016-07-07 16:22:51,014] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-07 16:22:51,015] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmprdje5_//tmp/airflowtmprdje5_/clean_off_propertyrGGFDG
+[2016-07-07 16:22:51,015] {bash_operator.py:65} INFO - Running command: cat ~/opa_data/br63trf.offpr | phl-off-property > /tmp/tmpZbg1fi/off_property.csv
+[2016-07-07 16:22:51,018] {bash_operator.py:73} INFO - Output:
+[2016-07-07 16:22:56,315] {bash_operator.py:80} INFO - Command exited with return code 0

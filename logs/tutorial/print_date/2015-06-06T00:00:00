@@ -1,0 +1,15 @@
+[2016-07-06 11:43:01,507] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/example_dags/tutorial.py
+[2016-07-06 11:43:02,377] {models.py:154} INFO - Filling up the DagBag from /home/nwebz/airflow/dags/example_dags/tutorial.py
+[2016-07-06 11:43:02,485] {models.py:1196} INFO - 
+--------------------------------------------------------------------------------
+Starting attempt 1 of 2
+--------------------------------------------------------------------------------
+
+[2016-07-06 11:43:02,542] {models.py:1219} INFO - Executing <Task(BashOperator): print_date> on 2015-06-06 00:00:00
+[2016-07-06 11:43:02,555] {bash_operator.py:55} INFO - tmp dir root location: 
+/tmp
+[2016-07-06 11:43:02,556] {bash_operator.py:64} INFO - Temporary script location :/tmp/airflowtmpeQX1cR//tmp/airflowtmpeQX1cR/print_dateLWbxA0
+[2016-07-06 11:43:02,556] {bash_operator.py:65} INFO - Running command: date
+[2016-07-06 11:43:02,560] {bash_operator.py:73} INFO - Output:
+[2016-07-06 11:43:02,562] {bash_operator.py:77} INFO - Wed Jul  6 11:43:02 EDT 2016
+[2016-07-06 11:43:02,562] {bash_operator.py:80} INFO - Command exited with return code 0
