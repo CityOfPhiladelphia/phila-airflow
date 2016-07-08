@@ -58,9 +58,18 @@ t6 = BashOperator(
         bash_command='''cat ~/opa_data/br63trf.nicrt4wb | phl-assessment-history > {{ ti.xcom_pull("temp_storage") }}/assessment_history.csv''', dag=dag)
 
 
+t7 = BashOperator(
+        task_id='clear_temp',
+        bash_command='''rm -rf {{ ti.xcom_pull("temp_storage") }} ''', dag=dag)
+
 dag.doc_md = "hello"
 t2.set_upstream(t1)
 t3.set_upstream(t1)
 t4.set_upstream(t1)
 t5.set_upstream(t1)
 t6.set_upstream(t1)
+t2.set_downstream(t7)
+t3.set_downstream(t7)
+t4.set_downstream(t7)
+t5.set_downstream(t7)
+t6.set_downstream(t7)
