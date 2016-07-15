@@ -23,7 +23,7 @@ class FileTransferOperator(BaseOperator):
     :type secure: bool
     """
 
-    template_fields = ('endpoint','data',)
+    template_fields = ('rempte_path','local_path',)
     template_ext = ()
     ui_color = '#f4a460'
 
