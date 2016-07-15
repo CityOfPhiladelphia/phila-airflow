@@ -1,2 +1,8 @@
 *.pyc
 env/
+
+# Airflow generated configuration files
+airflow.cfg
+airflow.db
+unittests.cfg
+logs/

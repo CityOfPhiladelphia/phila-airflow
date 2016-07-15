@@ -1,0 +1,4 @@
+airflow[hive,celery]==1.7.1.3
+
+# Transformation scripts
+git+https://github.com/CityOfPhiladelphia/property-assessments-data-pipeline.git#egg=phl-property==1.0.0
