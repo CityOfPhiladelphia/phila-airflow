@@ -4,7 +4,7 @@ from airflow.models import Variable
 from slackclient import SlackClient
 from airflow.operators.slack_operator import SlackAPIPostOperator
 from airflow.operators.bash_operator import BashOperator
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta
 
 
 seven_days_ago = datetime.combine(datetime.today() - timedelta(7),
@@ -25,13 +25,13 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('notify2', default_args=default_args)
+dag = DAG('notify', default_args=default_args)
 
 
 print_date = BashOperator(
     task_id='print-date',
     xcom_push=True,
-    bash_command= 'date ; echo -n $?',
+    bash_command= 'date ; echo $?',
     dag=dag
 )
 
