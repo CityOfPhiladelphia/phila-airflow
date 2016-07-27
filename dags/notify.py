@@ -29,7 +29,7 @@ dag = DAG('notify', default_args=default_args)
 
 
 print_date = BashOperator(
-    task_id='print-date',
+    task_id='print_date',
     xcom_push=True,
     bash_command= 'date ; echo $?',
     dag=dag
