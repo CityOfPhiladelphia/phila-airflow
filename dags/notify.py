@@ -4,7 +4,7 @@ from airflow.models import Variable
 from slackclient import SlackClient
 from airflow.operators.slack_operator import SlackAPIPostOperator
 from airflow.operators.bash_operator import BashOperator
-from datetime import *
+from datetime import datetime, timedelta 
 
 
 seven_days_ago = datetime.combine(datetime.today() - timedelta(7),
@@ -17,6 +17,7 @@ default_args = {
     'email': ['airflow@airflow.com'],
     'email_on_failure': False, 'email_on_retry': False, 'retries': 1,
     'retry_delay': timedelta(minutes=5),
+    'retries': 0
     # 'queue': 'bash_queue',
     # 'pool': 'backfill',
     # 'priority_weight': 10,
@@ -24,30 +25,35 @@ default_args = {
     # 'end_date': datetime(2016, 1, 1),
 }
 
-dag = DAG('notify', default_args=default_args)
+dag = DAG('notify2', default_args=default_args)
 
 
 print_date = BashOperator(
-    task_id='print_date',
-    bash_command='date | echo $?',
+    task_id='print-date',
+    xcom_push=True,
+    bash_command= 'date ; echo -n $?',
     dag=dag
 )
+
+def process_status_code(**kwargs):
+    ti = kwargs['ti']
+    status_code = int(ti.xcom_pull('print_date'))
+    if status_code  > 0:
+        return 'notify_error'
+    else:
+        return 'notify_success'
+
 
 # paths = [no_errors, errors]
 
 branch = BranchPythonOperator(
-    task_id='branch',
-    #compare value of exit code sc > 0 return failure
-    # not sure how to write this branch i was looking at an example at:
-    # https://github.com/apache/incubator-airflow/blob/master/airflow/example_dags/example_branch_operator.py
-
-    python_callable=abs():
-    if abs(sc) > 0:
-        return notify_error,
+    task_id='branch2',
+    provide_context=True,
+    python_callable=process_status_code,
     dag=dag
 )
 
-success = 'Your Task(s) finished without errors :pp-conga:'
+success = 'You should be happy Your Tasks finished without errors'
 
 no_errors = SlackAPIPostOperator(
     task_id='notify_success',
@@ -57,7 +63,6 @@ no_errors = SlackAPIPostOperator(
     dag=dag
 )
 
-no_errors.execute()
 
 failure = 'Your Task(s) have  met with an error please try again :sadparrot:'
 
@@ -69,8 +74,9 @@ errors = SlackAPIPostOperator(
     dag=dag
 )
 
-errors.execute()
 
 dag.doc_md = "Slack Notifications"
 
-no_errors.set_upstream(print_date)
+print_date.set_downstream(branch)
+branch.set_downstream(no_errors)
+branch.set_downstream(errors)
