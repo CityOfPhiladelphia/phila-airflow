@@ -1,4 +1,13 @@
-airflow[hive,celery]==1.7.1.3
+airflow[hive,celery,crypto,postgres,s3]==1.7.1.3
 
 # Transformation scripts
 git+https://github.com/CityOfPhiladelphia/property-assessments-data-pipeline.git#egg=phl-property==1.0.0
+
+
+# =====================================
+# Requirements for custom operators
+
+# -------------------------------------
+# Databases (Oracle)
+cx_Oracle==5.2.1
+git+https://github.com/CityOfPhiladelphia/datum.git@f0ddfcd#egg=datum

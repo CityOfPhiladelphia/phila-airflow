@@ -1,26 +1,26 @@
 import logging
 
+import datum
+
 from airflow.plugins_manager import AirflowPlugin
 
 from airflow.exceptions import AirflowException
-from airflow.contrib.hooks.ftp_hook import FTPHook, FTPSHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from os.path import exists
 
 
-class FileTransferOperator(BaseOperator):
+class CSV2DBOperator(BaseOperator):
     """
-    Downloads a file from a connection.
+    Load a CSV file into a database table
 
-    :param conn_id: The connection to run the operator against.
-    :type conn_id: string
-    :param remote_path: The path to the file on the server
-    :type remote_path: string
-    :param local_path: The full path to which the file will be downloaded
-    :type local_path: string
-    :param secure: Whether to use a secure connection
-    :type secure: bool
+    * Where does the CSV come from? Filename or stream
+    * What's the database connection info?
+    * What table should it go in?
+
+    :param db_conn_id: The connection to run the operator against.
+    :type db_conn_id: string
+    :param csv_path: The path to the file on the server
+    :type csv_path: string
     """
 
     template_fields = ('remote_path','local_path',)
@@ -33,8 +33,8 @@ class FileTransferOperator(BaseOperator):
                  remote_path,
                  local_path,
                  secure=False, *args, **kwargs):
-        super(FileTransferOperator, self).__init__(*args, **kwargs)
-        self.conn_id = http_conn_id
+        super(CSV2DBOperator, self).__init__(*args, **kwargs)
+        self.conn_id = conn_id
         self.remote_path = remote_path
         self.local_path = local_path
         self.secure = secure
@@ -46,6 +46,6 @@ class FileTransferOperator(BaseOperator):
         conn.retrieve_file(self.remote_path, self.local_path)
 
 
-class FileTransferOperatorPlugin(AirflowPlugin):
-    name = "file_transfer_operator_plugin"
-    operators = [FileTransferOperator]
+class DatumPlugin(AirflowPlugin):
+    name = "datum_plugin"
+    operators = [CSV2DBOperator]
