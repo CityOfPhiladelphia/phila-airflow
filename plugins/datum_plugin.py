@@ -1,5 +1,6 @@
 import logging
 
+import csv
 import datum
 
 from airflow.plugins_manager import AirflowPlugin
@@ -10,16 +11,38 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
 
+def get_chunk(iterator, size):
+    for _ in range(size):
+        yield next(iterator)
+
+def chunks(iterable, size):
+    iterator = iter(iterable)
+    while True:
+        yield get_chunk(iterator, size)
+
+
 class DatumHook (BaseHook):
-    def __init__(self, db_conn_id, *args, **kwargs):
-        super(DatumHook, self).__init__(*args, **kwargs)
+    def __init__(self, db_conn_id, conn=None):
         self.db_conn_id = db_conn_id
+        self.conn = conn
 
     def get_conn(self):
+        SCHEMAS = {
+            'postgres': 'postgis',
+            'oracle': 'oracle-stgeom',
+        }
+
         if self.conn is None:
             params = self.get_connection(self.db_conn_id)
-            logging.info('Establishing connection to {}'.format(params.name))
-            self.conn = datum.connect(params.extra)
+
+            if params.conn_type not in SCHEMAS:
+                raise AirflowException('Could not create Datum connection for connection type {}'.format(params.conn_type))
+
+            logging.info('Establishing connection to {}'.format(self.db_conn_id))
+            auth = params.login + ':' + params.password
+            conn_string = SCHEMAS[params.conn_type] + '://' + auth + '@' + params.extra
+            logging.info('Connection string is {}'.format(conn_string))
+            self.conn = datum.connect(conn_string)
         return self.conn
 
 
@@ -74,7 +97,8 @@ class DatumCSV2TableOperator(BaseOperator):
             self.truncate_table()
 
             logging.info("Inserting rows into table, 1000 at a time")
-            self.conn.bulk_insert(table, rows, chunk_size=1000)
+            for chunk in chunks(rows, 1000):
+                self.conn.table(table).write(list(chunk))
 
         logging.info("Done!")
 
@@ -87,7 +111,7 @@ class DatumCSV2TableOperator(BaseOperator):
             return
 
         fielddefs = ',\n'.join(
-            fieldname + ' ' + self.db_field_overrides.get(fieldname, 'VARCHAR2(4000)')
+            '"{}" {}'.format(fieldname.lower(), self.db_field_overrides.get(fieldname, 'VARCHAR2(4000)'))
             for fieldname in fieldnames
         )
         sql = self.sql_override or 'CREATE TABLE {} ({})'.format(table, fielddefs)
@@ -100,7 +124,7 @@ class DatumCSV2TableOperator(BaseOperator):
 
         if self.truncate:
             logging.info("Truncating the {} table".format(table))
-            self.conn.truncate(table)
+            self.conn._child.truncate(table)
 
 
 class DatumPlugin(AirflowPlugin):
