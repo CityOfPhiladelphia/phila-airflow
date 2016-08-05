@@ -11,6 +11,9 @@ from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumCSV2TableOperator
 from airflow.operators import FileTransferOperator
+from slackclient import SlackClient
+from airflow.operators.slack_operator import SlackAPIPostOperator
+from airflow.models import Variable
 from datetime import datetime, timedelta
 
 # ============================================================
@@ -47,7 +50,7 @@ t1a = FileTransferOperator(
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.os13sd\'',
+    source_path='/home/input/\'br63trf.os13sd\'',
 
     dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.os13sd',
@@ -58,7 +61,7 @@ t1b = FileTransferOperator(
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.buildcod\'',
+    source_path='/home/input/\'br63trf.buildcod\'',
 
     dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.buildcod',
@@ -69,7 +72,7 @@ t1c = FileTransferOperator(
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.stcode\'',
+    source_path='/home/input/\'br63trf.stcode\'',
 
     dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.stcode',
@@ -80,7 +83,7 @@ t1d = FileTransferOperator(
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.offpr\'',
+    source_path='/home/input/\'br63trf.offpr\'',
 
     dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.offpr',
@@ -91,11 +94,28 @@ t1e = FileTransferOperator(
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.nicrt4wb\'',
+    source_path='/home/input/\'br63trf.nicrt4wb\'',
 
     dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb',
 )
+
+def failed(context):
+    """ping error in slack on failure and provide link to the log"""
+    conf = context["conf"]
+    task = context["task"]
+    execution_date = context["execution_date"]
+    dag = context["dag"]
+    errors = SlackAPIPostOperator(
+        task_id='task_failed',
+        token=Variable.get('slack_token'),
+        channel='C1SRU2R33',
+        text="Your DAG has encountered an error, please follow the link to view the log details:  " + "http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
+        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=" + dag.dag_id,
+        dag=dag
+    )
+
+    errors.execute()
 
 # ------------------------------------------------------------
 # Transform - run each table through a cleanup script
