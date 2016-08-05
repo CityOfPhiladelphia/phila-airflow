@@ -15,12 +15,13 @@ def failed(context):
     conf = context["conf"]
     task = context["task"]
     execution_date = context["execution_date"]
+    dag = context["dag"]
     errors = SlackAPIPostOperator(
         task_id='task_failed',
         token=Variable.get('slack_token'),
         channel='C1SRU2R33',
-        text="http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
-        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=notify2",
+        text="Your DAG has encountered an error :sadparrot:, please follow the link to view the log details:  " + "http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
+        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=" + dag.dag_id,
         dag=dag
     )
 
@@ -37,7 +38,7 @@ default_args = {
     'on_failure_callback': failed
 }
 
-dag = DAG('notify2', default_args=default_args)
+dag = DAG('notify4', default_args=default_args)
 
 
 
@@ -50,6 +51,3 @@ print_date = BashOperator(
 
 
 dag.doc_md = "Slack Notifications"
-
-
-
