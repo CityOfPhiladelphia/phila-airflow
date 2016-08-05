@@ -16,6 +16,22 @@ from airflow.operators.slack_operator import SlackAPIPostOperator
 from airflow.models import Variable
 from datetime import datetime, timedelta
 
+def failed(context):
+    """ping error in slack on failure and provide link to the log"""
+    conf = context["conf"]
+    task = context["task"]
+    execution_date = context["execution_date"]
+    dag = context["dag"]
+    errors = SlackAPIPostOperator(
+        task_id='task_failed',
+        token=Variable.get('slack_token'),
+        channel='C1SRU2R33',
+        text="Your DAG has encountered an error, please follow the link to view the log details:  " + "http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
+        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=" + dag.dag_id,
+        dag=pipeline
+    )
+
+    errors.execute()
 # ============================================================
 # Defaults - these arguments apply to all operators
 
@@ -25,6 +41,7 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2016, 8, 5, 0, 0, 0),
+    'on_failure_callback': failed,
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
@@ -47,6 +64,7 @@ t0 = PythonOperator(
 
 t1a = FileTransferOperator(
     task_id='download_properties',
+    xcom_push=True,
     dag=pipeline,
 
     source_type='local',
@@ -100,22 +118,6 @@ t1e = FileTransferOperator(
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb',
 )
 
-def failed(context):
-    """ping error in slack on failure and provide link to the log"""
-    conf = context["conf"]
-    task = context["task"]
-    execution_date = context["execution_date"]
-    dag = context["dag"]
-    errors = SlackAPIPostOperator(
-        task_id='task_failed',
-        token=Variable.get('slack_token'),
-        channel='C1SRU2R33',
-        text="Your DAG has encountered an error, please follow the link to view the log details:  " + "http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
-        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=" + dag.dag_id,
-        dag=dag
-    )
-
-    errors.execute()
 
 # ------------------------------------------------------------
 # Transform - run each table through a cleanup script
