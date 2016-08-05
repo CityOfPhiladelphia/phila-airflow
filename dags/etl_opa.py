@@ -21,7 +21,7 @@ default_args = {
     'depends_on_past': False,  # TODO: Look up what depends_on_past is
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(1, 1, 1, 0, 0, 0),
+    'start_date': datetime(2016, 8, 5, 0, 0, 0),
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
