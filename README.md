@@ -31,8 +31,8 @@ airflow webserver -p 8080
 # constructing a new dag requires importing airflow’s DAG class:
 from airflow import DAG
 
-# use the DAG class to instantiate a new dag, provide arguments for the name, and default settings.\
-#The latter can be created with a dictionary and will be applied to all of your operators:
+# use the DAG class to instantiate a new dag, provide arguments for the name, and default settings.
+# The latter can be created with a dictionary and will be applied to all of your operators:
 
 default_args = {
     'owner': 'airflow',
