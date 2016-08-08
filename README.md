@@ -26,7 +26,7 @@ airflow webserver -p 8080
 
 ## Dag Construction
 
-'''python
+```python
 
 # constructing a new dag requires importing airflow’s DAG class:
 from airflow import DAG
@@ -89,4 +89,4 @@ task1 >> task4
 task2 >> task4
 task3 >> task4
 
-'''
+```
