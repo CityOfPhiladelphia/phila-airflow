@@ -24,6 +24,19 @@ airflow initdb
 airflow webserver -p 8080
 ```
 
+## Encryption
+
+You can store connection credentials and other sensitive information in your
+database, but you'll want to store it encrypted. Open your *airflow.cfg* file
+and find the `fernet_key` line. In a terminal, run:
+
+```bash
+scripts/generate_enc_key
+```
+
+Use the output of that command as the `fernet_key` value.
+
+
 ## Dag Construction
 
 ```python
