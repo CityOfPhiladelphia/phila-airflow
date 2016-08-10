@@ -44,7 +44,8 @@ Use the output of that command as the `fernet_key` value.
 # constructing a new dag requires importing airflow’s DAG class:
 from airflow import DAG
 
-# use the DAG class to instantiate a new dag, provide arguments for the name, and default settings. The latter can be created with a dictionary:
+# use the DAG class to instantiate a new dag, provide arguments for the name, and default settings.
+# The latter can be created with a dictionary and will be applied to all of your operators:
 
 default_args = {
     'owner': 'airflow',
@@ -98,8 +99,13 @@ task4 = SlackAPIPostOperator(
 task2.execute()
 
 # to set the dependency of one task on another use the convention:
+# set task4 downstream of task1
 task1 >> task4
+
+# set task 4 downstream of task2
 task2 >> task4
+
+# set task4 downstream of task3
 task3 >> task4
 
 ```
