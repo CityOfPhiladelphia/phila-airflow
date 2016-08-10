@@ -46,7 +46,6 @@ class DatumHook (BaseHook):
             logging.info('Establishing connection to {}'.format(self.db_conn_id))
             auth = params.login + ':' + params.password
             conn_string = SCHEMAS[params.conn_type] + '://' + auth + '@' + params.extra_dejson.get('tns')
-            logging.info('Connection string is {}'.format(conn_string))
             self.conn = datum.connect(conn_string)
         return self.conn
 
