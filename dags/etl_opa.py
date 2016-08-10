@@ -10,28 +10,10 @@ from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumCSV2TableOperator
-from airflow.operators import FileTransferOperator
-from slackclient import SlackClient
-from airflow.operators.slack_operator import SlackAPIPostOperator
-from airflow.models import Variable
+from airflow.operators import CleanupOperator
+from airflow.operators import FileDownloadOperator
 from datetime import datetime, timedelta
 
-def failed(context):
-    """ping error in slack on failure and provide link to the log"""
-    conf = context["conf"]
-    task = context["task"]
-    execution_date = context["execution_date"]
-    dag = context["dag"]
-    errors = SlackAPIPostOperator(
-        task_id='task_failed',
-        token=Variable.get('slack_token'),
-        channel='C1SRU2R33',
-        text="Your DAG has encountered an error, please follow the link to view the log details:  " + "http://localhost:8080/admin/airflow/log?" + "task_id=" + task.task_id + "&" +\
-        "execution_date=" + execution_date.isoformat() + "&" + "dag_id=" + dag.dag_id,
-        dag=pipeline
-    )
-
-    errors.execute()
 # ============================================================
 # Defaults - these arguments apply to all operators
 
@@ -40,13 +22,12 @@ default_args = {
     'depends_on_past': False,  # TODO: Look up what depends_on_past is
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2016, 8, 5, 0, 0, 0),
-    'on_failure_callback': failed,
+    'start_date': datetime(2017, 1, 1, 0, 0, 0),
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_opa', default_args=default_args)  # TODO: Look up how to schedule a DAG
+pipeline = DAG('etl_opa_v2', default_args=default_args)  # TODO: Look up how to schedule a DAG
 
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
@@ -55,74 +36,72 @@ def mkdir():
     import tempfile
     return tempfile.mkdtemp()
 
-t0 = PythonOperator(
+mk_staging = PythonOperator(
     task_id='staging',
     dag=pipeline,
 
     python_callable=mkdir,
 )
 
-t1a = FileTransferOperator(
+extract_a = FileDownloadOperator(
     task_id='download_properties',
-    xcom_push=True,
     dag=pipeline,
 
-    source_type='local',
-    source_path='/home/input/\'br63trf.os13sd\'',
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/OPA_Property_CD/\'br63trf.os13sd\'',
 
-    dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.os13sd',
 )
 
-t1b = FileTransferOperator(
+extract_b = FileDownloadOperator(
     task_id='download_building_codes',
     dag=pipeline,
 
-    source_type='local',
-    source_path='/home/input/\'br63trf.buildcod\'',
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/OPA_Property_CD/\'br63trf.buildcod\'',
 
-    dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.buildcod',
 )
 
-t1c = FileTransferOperator(
+extract_c = FileDownloadOperator(
     task_id='download_street_codes',
     dag=pipeline,
 
-    source_type='local',
-    source_path='/home/input/\'br63trf.stcode\'',
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/OPA_Property_CD/\'br63trf.stcode\'',
 
-    dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.stcode',
 )
 
-t1d = FileTransferOperator(
+extract_d = FileDownloadOperator(
     task_id='download_off_property',
     dag=pipeline,
 
-    source_type='local',
-    source_path='/home/input/\'br63trf.offpr\'',
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/OPA_Property_CD/\'br63trf.offpr\'',
 
-    dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.offpr',
 )
 
-t1e = FileTransferOperator(
+extract_e = FileDownloadOperator(
     task_id='download_assessment_history',
     dag=pipeline,
 
-    source_type='local',
-    source_path='/home/input/\'br63trf.nicrt4wb\'',
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/OPA_Property_CD/\'br63trf.nicrt4wb\'',
 
-    dest_type='local',
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb',
 )
-
 
 # ------------------------------------------------------------
 # Transform - run each table through a cleanup script
 
-t2a = BashOperator(
+transform_a = BashOperator(
     task_id='clean_properties',
     dag=pipeline,
 
@@ -131,7 +110,7 @@ t2a = BashOperator(
         'phl-properties > {{ ti.xcom_pull("staging") }}/properties.csv',
 )
 
-t2b = BashOperator(
+transform_b = BashOperator(
     task_id='clean_building_codes',
     dag=pipeline,
 
@@ -140,7 +119,7 @@ t2b = BashOperator(
         'phl-building-codes > {{ ti.xcom_pull("staging") }}/building_codes.csv',
 )
 
-t2c = BashOperator(
+transform_c = BashOperator(
     task_id='clean_street_codes',
     dag=pipeline,
 
@@ -149,7 +128,7 @@ t2c = BashOperator(
         'phl-street-codes > {{ ti.xcom_pull("staging") }}/building_codes.csv',
 )
 
-t2d = BashOperator(
+transform_d = BashOperator(
     task_id='clean_off_property',
     dag=pipeline,
 
@@ -158,7 +137,7 @@ t2d = BashOperator(
         'phl-off-property > {{ ti.xcom_pull("staging") }}/off_property.csv',
 )
 
-t2e = BashOperator(
+transform_e = BashOperator(
     task_id='clean_assessment_history',
     dag=pipeline,
 
@@ -171,7 +150,7 @@ t2e = BashOperator(
 # ------------------------------------------------------------
 # Load - copy tables into on-prem database(s)
 
-t3a = DatumCSV2TableOperator(
+load_a = DatumCSV2TableOperator(
     task_id='load_properties',
     dag=pipeline,
 
@@ -180,7 +159,7 @@ t3a = DatumCSV2TableOperator(
     db_table_name='opa_properties',
 )
 
-t3b = DatumCSV2TableOperator(
+load_b = DatumCSV2TableOperator(
     task_id='load_building_codes',
     dag=pipeline,
 
@@ -189,7 +168,7 @@ t3b = DatumCSV2TableOperator(
     db_table_name='opa_building_codes',
 )
 
-t3c = DatumCSV2TableOperator(
+load_c = DatumCSV2TableOperator(
     task_id='load_street_codes',
     dag=pipeline,
 
@@ -198,7 +177,7 @@ t3c = DatumCSV2TableOperator(
     db_table_name='opa_street_codes',
 )
 
-t3d = DatumCSV2TableOperator(
+load_d = DatumCSV2TableOperator(
     task_id='load_off_property',
     dag=pipeline,
 
@@ -207,7 +186,7 @@ t3d = DatumCSV2TableOperator(
     db_table_name='opa_off_property',
 )
 
-t3e = DatumCSV2TableOperator(
+load_e = DatumCSV2TableOperator(
     task_id='load_assessment_history',
     dag=pipeline,
 
@@ -219,19 +198,18 @@ t3e = DatumCSV2TableOperator(
 # ------------------------------------------------------------
 # Postscript - clean up the staging area
 
-# t3 = S3CleanupOperator(
-#     task_id='cleanup_staging',
-#
-#     s3_conn_id='phl-s3-etl',
-#     s3_key='s3://airflow-staging/opa/{{ ts_nodash }}'
-# )
+cleanup = CleanupOperator(
+    task_id='cleanup_staging',
+    dag=pipeline,
+    paths='{{ ti.xcom_pull("staging") }}',
+)
 
 
 # ============================================================
 # Configure the pipeline's dag
 
-t0 >> t1a >> t2a >> t3a
-t0 >> t1b >> t2b >> t3b
-t0 >> t1c >> t2c >> t3c
-t0 >> t1d >> t2d >> t3d
-t0 >> t1e >> t2e >> t3e
+mk_staging >> extract_a >> transform_a >> load_a >> cleanup
+mk_staging >> extract_b >> transform_b >> load_b >> cleanup
+mk_staging >> extract_c >> transform_c >> load_c >> cleanup
+mk_staging >> extract_d >> transform_d >> load_d >> cleanup
+mk_staging >> extract_e >> transform_e >> load_e >> cleanup

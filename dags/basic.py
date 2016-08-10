@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import EmailOperator
+from airflow.operators import FileTransferOperator
 from datetime import datetime, timedelta
 
 seven_days_ago = datetime.combine(datetime.today() - timedelta(7),

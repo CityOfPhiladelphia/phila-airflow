@@ -20,6 +20,11 @@ def chunks(iterable, size):
     while True:
         yield get_chunk(iterator, size)
 
+def lower_keys_dict(d):
+    lower_d = {}
+    for k in d:
+        lower_d[k.lower()] = d[k]
+    return lower_d
 
 class DatumHook (BaseHook):
     def __init__(self, db_conn_id, conn=None):
@@ -40,7 +45,7 @@ class DatumHook (BaseHook):
 
             logging.info('Establishing connection to {}'.format(self.db_conn_id))
             auth = params.login + ':' + params.password
-            conn_string = SCHEMAS[params.conn_type] + '://' + auth + '@' + params.extra
+            conn_string = SCHEMAS[params.conn_type] + '://' + auth + '@' + params.extra_dejson.get('tns')
             logging.info('Connection string is {}'.format(conn_string))
             self.conn = datum.connect(conn_string)
         return self.conn
@@ -93,11 +98,11 @@ class DatumCSV2TableOperator(BaseOperator):
         with open(self.csv_path) as csvfile:
             rows = csv.DictReader(csvfile)
 
-            self.create_table_if_not_exist(rows.fieldnames)
+            self.create_table_if_not_exist(n.lower() for n in rows.fieldnames)
             self.truncate_table()
 
             logging.info("Inserting rows into table, 1000 at a time")
-            for chunk in chunks(rows, 1000):
+            for chunk in chunks((lower_keys_dict(row) for row in rows), 1000):
                 self.conn.table(table).write(list(chunk))
 
         logging.info("Done!")
