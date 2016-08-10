@@ -103,3 +103,17 @@ task2 >> task4
 task3 >> task4
 
 ```
+
+## Troubleshooting Plugins
+
+Sometimes Airflow will fail to import components that you've made available via plugins. In order to troubleshoot your plugin, follow these instructions:
+
+1. Open a Python REPL and import Airflow
+
+   ```python
+   >>> from airflow import *
+   ```
+
+   If Python gives you any exceptions, you may have a syntax error in one of your modules.
+
+2. Import the components that the plugin provides. For example, if your plugin exposes a hook, import it from `airflow.hooks`; if it exposes an operator import it from `airflow.operators`.
