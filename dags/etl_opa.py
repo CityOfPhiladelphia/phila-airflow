@@ -24,7 +24,7 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'start_date': datetime(2017, 1, 1, 0, 0, 0),
-    'on_failure_callback': SlackNotificationOperator.failed,
+    'on_failure_callback': SlackNotificationOperator.failed(),
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
