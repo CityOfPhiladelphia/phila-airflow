@@ -39,6 +39,20 @@ Use the output of that command as the `fernet_key` value.
 
 ## Dag Construction
 
+You can reuse your own python modules in pipelines. In order to use a module,
+it must be installable -- e.g., it should have a *setup.py* file. A minimal
+*setup.py* file looks something like:
+
+```python
+from distutils.core import setup
+
+setup(
+    name='phl-simple',
+    version='1.0.0',
+    scripts=['simple.py'],
+)
+```
+
 ```python
 
 # constructing a new dag requires importing airflow’s DAG class:
