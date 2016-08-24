@@ -15,6 +15,7 @@ from past.builtins import basestring
 from contextlib import contextmanager
 from io import BytesIO
 from os.path import exists
+from os.path import isdir
 from shutil import copyfile
 from tempfile import mkstemp, NamedTemporaryFile
 
@@ -102,7 +103,7 @@ class CommonFSHook (CommonFileHook):
 
     @contextmanager
     def open(self, remotepath, mode='rb'):
-        yield from open(remotepath, mode)
+        return open(remotepath, mode)
 
 # ---------------------------------------------------------
 
@@ -126,9 +127,9 @@ class CommonFTPHookMixin (CommonFileHook):
         elif mode_params['can_write'] and not mode_params['replace']:
             raise NotImplementedError('Cannot append to a file over FTP.')
         elif mode_params['can_read']:
-            yield from self._open_for_read(remotepath, **mode_params)
+            return self._open_for_read(remotepath, **mode_params)
         elif mode_params['can_write']:
-            yield from self._open_for_write(remotepath, **mode_params)
+            return self._open_for_write(remotepath, **mode_params)
 
     def _open_for_read(self, remotepath, **mode_params):
         fileob = BytesIO()
@@ -153,9 +154,10 @@ class PySFTPHook (FTPHook):
         Returns a PySFTP connection object
         """
         if self.conn is None:
+            logging.info("Using Connection with ID {}".format(self.ftp_conn_id))
             params = self.get_connection(self.ftp_conn_id)
             logging.info('Establishing secure connection to {}'.format(params.host))
-            self.conn = pysftp.Connection(
+            self.conn = pysftp.Connection   (
                 params.host, username=params.login, password=params.password
             )
         return self.conn
@@ -395,6 +397,8 @@ class CleanupOperator(BaseOperator):
                  conn_type='local',
                  *args, **kwargs):
         super(CleanupOperator, self).__init__(*args, **kwargs)
+        if isinstance(paths, str):
+            paths = [paths]
 
         self.conn_type = conn_type
         self.conn_id = conn_id
