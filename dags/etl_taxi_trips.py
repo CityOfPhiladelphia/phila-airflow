@@ -41,8 +41,8 @@ extract = FolderDownloadOperator(task_id='download_properties', dag=pipeline,
 transform = BashOperator(task_id='merge_trips', dag=pipeline,
     bash_command=
         'taxitrips.py transform '
-        '  -v "{{ ti.xcom_pull("staging") }}/*.csv"'
-        '  -c "{{ ti.xcom_pull("staging") }}/*.csv" > '
+        '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
+        '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
         '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
 )
 
