@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from os.path import exists
 from os.path import isdir
-from shutil import copyfile, copytree
+from shutil import copyfile, copytree, rmtree
 from tempfile import mkstemp, NamedTemporaryFile
 
 
@@ -91,9 +91,10 @@ class CommonFSHook (CommonFileHook):
             raise FileExistsError(localpath)
         copyfile(remotepath, localpath)
 
-    def download_folder(self, remotepath, localpath):
-        if not replace and exists(localpath):
-            raise FileExistsError(localpath)
+    def download_folder(self, remotepath, localpath, replace=True):
+        if exists(localpath):
+            if replace: rmtree(localpath)
+            else: raise FileExistsError(localpath)
         copytree(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
@@ -125,8 +126,9 @@ class CommonFTPHookMixin (CommonFileHook):
         self.retrieve_file(remotepath, localpath)
 
     def download_folder(self, remotepath, localpath, replace=True):
-        if not replace and exists(localpath):
-            raise FileExistsError(localpath)
+        if exists(localpath):
+            if replace: rmtree(localpath)
+            else: raise FileExistsError(localpath)
         self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):

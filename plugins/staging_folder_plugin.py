@@ -47,9 +47,9 @@ class DestroyStagingFolder (BaseOperator):
         self.dir = dir
 
     def execute(self, context):
-        from os import unlink
+        from shutil import rmtree
         log.debug('Deleting the staging folder {}'.format(self.dir))
-        unlink(self.dir)
+        rmtree(self.dir)
 
 
 # =========================================================
