@@ -8,8 +8,8 @@ from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumLoadOperator
-from airflow.operators import CleanupOperator
-from airflow.operators import FileDownloadOperator
+from airflow.operators import CreateStagingFolder, DestroyStagingFolder
+from airflow.operators import FolderDownloadOperator
 from airflow.operators import SlackNotificationOperator
 from datetime import datetime, timedelta
 
@@ -54,8 +54,8 @@ load = DatumLoadOperator(task_id='load_properties', dag=pipeline,
     db_table_name='taxi_trips',
 )
 
-cleanup = CleanupOperator(task_id='cleanup_staging', dag=pipeline,
-    paths='{{ ti.xcom_pull("staging") }}',
+cleanup = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
+    dir='{{ ti.xcom_pull("staging") }}',
 )
 
 
