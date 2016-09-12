@@ -11,7 +11,7 @@ from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumLoadOperator
 from airflow.operators import CleanupOperator
-from airflow.operators import FileDownloadOperator
+from airflow.operators import FolderDownloadOperator
 from airflow.operators import SlackNotificationOperator
 from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from datetime import datetime, timedelta
@@ -32,7 +32,7 @@ default_args = {
 
 db_conn_id = 'phl-warehouse-staging'
 
-pipeline = DAG('etl_opa_local_v1', default_args=default_args)
+pipeline = DAG('etl_opa_local_v2', default_args=default_args)
 
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
@@ -42,54 +42,14 @@ mk_staging = CreateStagingFolder(
     dag=pipeline,
 )
 
-extract_a = FileDownloadOperator(
+extract = FolderDownloadOperator(
     task_id='download_properties',
     dag=pipeline,
 
     source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.os13sd\'',
+    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input',
 
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.os13sd',
-)
-
-extract_b = FileDownloadOperator(
-    task_id='download_building_codes',
-    dag=pipeline,
-
-    source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.buildcod\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.buildcod',
-)
-
-extract_c = FileDownloadOperator(
-    task_id='download_street_codes',
-    dag=pipeline,
-
-    source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.stcode\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.stcode',
-)
-
-extract_d = FileDownloadOperator(
-    task_id='download_off_property',
-    dag=pipeline,
-
-    source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.offpr\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.offpr',
-)
-
-extract_e = FileDownloadOperator(
-    task_id='download_assessment_history',
-    dag=pipeline,
-
-    source_type='local',
-    source_path='/home/mjumbewu/Programming/phila/property-assessments-data-pipeline/input/\'br63trf.nicrt4wb\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb',
+    dest_path='{{ ti.xcom_pull("staging") }}/input',
 )
 
 # ------------------------------------------------------------
@@ -100,8 +60,8 @@ transform_a = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.os13sd | '
-        'phl-properties > {{ ti.xcom_pull("staging") }}/properties.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\'br63trf.os13sd\' | '
+        'phl-properties > {{ ti.xcom_pull("staging") }}/cleaned/properties.csv',
 )
 
 transform_b = BashOperator(
@@ -109,8 +69,8 @@ transform_b = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.buildcod | '
-        'phl-building-codes > {{ ti.xcom_pull("staging") }}/building_codes.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\'br63trf.buildcod\' | '
+        'phl-building-codes > {{ ti.xcom_pull("staging") }}/cleaned/building_codes.csv',
 )
 
 transform_c = BashOperator(
@@ -118,8 +78,8 @@ transform_c = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.stcode | '
-        'phl-street-codes > {{ ti.xcom_pull("staging") }}/street_codes.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\'br63trf.stcode\' | '
+        'phl-street-codes > {{ ti.xcom_pull("staging") }}/cleaned/street_codes.csv',
 )
 
 transform_d = BashOperator(
@@ -127,8 +87,8 @@ transform_d = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.offpr | '
-        'phl-off-property > {{ ti.xcom_pull("staging") }}/off_property.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\'br63trf.offpr\' | '
+        'phl-off-property > {{ ti.xcom_pull("staging") }}/cleaned/off_property.csv',
 )
 
 transform_e = BashOperator(
@@ -136,8 +96,8 @@ transform_e = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb | '
-        'phl-assessment-history > {{ ti.xcom_pull("staging") }}/assessment_history.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\'br63trf.nicrt4wb\' | '
+        'phl-assessment-history > {{ ti.xcom_pull("staging") }}/cleaned/assessment_history.csv',
 )
 
 
@@ -148,7 +108,7 @@ load_a = DatumLoadOperator(
     task_id='load_properties',
     dag=pipeline,
 
-    csv_path='{{ ti.xcom_pull("staging") }}/properties.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/cleaned/properties.csv',
     db_conn_id=db_conn_id,
     db_table_name='opa_properties',
 )
@@ -157,7 +117,7 @@ load_b = DatumLoadOperator(
     task_id='load_building_codes',
     dag=pipeline,
 
-    csv_path='{{ ti.xcom_pull("staging") }}/building_codes.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/cleaned/building_codes.csv',
     db_conn_id=db_conn_id,
     db_table_name='opa_building_codes',
 )
@@ -166,7 +126,7 @@ load_c = DatumLoadOperator(
     task_id='load_street_codes',
     dag=pipeline,
 
-    csv_path='{{ ti.xcom_pull("staging") }}/street_codes.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/cleaned/street_codes.csv',
     db_conn_id=db_conn_id,
     db_table_name='opa_street_codes',
 )
@@ -175,7 +135,7 @@ load_d = DatumLoadOperator(
     task_id='load_off_property',
     dag=pipeline,
 
-    csv_path='{{ ti.xcom_pull("staging") }}/off_property.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/cleaned/off_property.csv',
     db_conn_id=db_conn_id,
     db_table_name='opa_off_property',
 )
@@ -184,7 +144,7 @@ load_e = DatumLoadOperator(
     task_id='load_assessment_history',
     dag=pipeline,
 
-    csv_path='{{ ti.xcom_pull("staging") }}/assessment_history.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/cleaned/assessment_history.csv',
     db_conn_id=db_conn_id,
     db_table_name='opa_assessment_history',
 )
@@ -202,8 +162,10 @@ cleanup = DestroyStagingFolder(
 # ============================================================
 # Configure the pipeline's dag
 
-mk_staging >> extract_a >> transform_a >> load_a >> cleanup
-mk_staging >> extract_b >> transform_b >> load_b >> cleanup
-mk_staging >> extract_c >> transform_c >> load_c >> cleanup
-mk_staging >> extract_d >> transform_d >> load_d >> cleanup
-mk_staging >> extract_e >> transform_e >> load_e >> cleanup
+mk_staging >> extract
+
+extract >> transform_a >> load_a >> cleanup
+extract >> transform_b >> load_b >> cleanup
+extract >> transform_c >> load_c >> cleanup
+extract >> transform_d >> load_d >> cleanup
+extract >> transform_e >> load_e >> cleanup

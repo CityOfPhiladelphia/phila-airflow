@@ -9,7 +9,7 @@ from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import FileDownloadOperator
-from airflow.operators import DatumCSV2TableOperator
+from airflow.operators import DatumLoadOperator
 from airflow.operators import CleanupOperator
 from airflow.operators import SlackNotificationOperator
 from datetime import datetime, timedelta

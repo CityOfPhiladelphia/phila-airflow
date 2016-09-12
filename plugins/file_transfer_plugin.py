@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from os.path import exists
 from os.path import isdir
-from shutil import copyfile
+from shutil import copyfile, copytree
 from tempfile import mkstemp, NamedTemporaryFile
 
 
@@ -62,6 +62,12 @@ class CommonFileHook (BaseHook):
         """
         raise NotImplementedError
 
+    def download_folder(self, remotepath, localpath, replace=True):
+        """
+        Transfer everything in a folder at a remote source to a local folder.
+        """
+        raise NotImplementedError
+
     def upload(self, localpath, remotepath, replace=True):
         """
         Transfer a file from a local file path to a remote destination.
@@ -84,6 +90,11 @@ class CommonFSHook (CommonFileHook):
         if not replace and exists(localpath):
             raise FileExistsError(localpath)
         copyfile(remotepath, localpath)
+
+    def download_folder(self, remotepath, localpath):
+        if not replace and exists(localpath):
+            raise FileExistsError(localpath)
+        copytree(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
         if not replace and exists(remotepath):
@@ -112,6 +123,11 @@ class CommonFTPHookMixin (CommonFileHook):
         if not replace and exists(localpath):
             raise FileExistsError(localpath)
         self.retrieve_file(remotepath, localpath)
+
+    def download_folder(self, remotepath, localpath, replace=True):
+        if not replace and exists(localpath):
+            raise FileExistsError(localpath)
+        self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
         if not replace:
@@ -174,11 +190,19 @@ class PySFTPHook (FTPHook):
 
         logging.info('Retrieving file from FTP: {}'.format(remote_full_path))
         conn.getfo(remote_full_path, output_handle)
-        logging.info('Finished etrieving file from FTP: {}'.format(
+        logging.info('Finished retrieving file from FTP: {}'.format(
             remote_full_path))
 
         if is_path:
             output_handle.close()
+
+    def retrieve_folder(self, remote_full_path, local_full_path):
+        conn = self.get_conn()
+
+        logging.info('Retrieving files in folder from FTP: {}'.format(remote_full_path))
+        conn.get_d(remote_full_path, local_full_path)
+        logging.info('Finished retrieving folder from FTP: {}'.format(
+            remote_full_path))
 
 class CommonFTPHook (FTPHook, CommonFTPHookMixin):
     def __init__(self, conn_id):
@@ -252,6 +276,54 @@ class FileDownloadOperator(BaseOperator):
         logging.info("Downloading file {} from {} source {} to local file {}."
             .format(self.source_path, self.source_type, self.source_conn_id, self.dest_path))
         self.SourceHook(self.source_conn_id).download(self.source_path, self.dest_path)
+
+class FolderDownloadOperator(BaseOperator):
+    """
+    Downloads a folder from a connection.
+    """
+    template_fields = ('source_path','dest_path',)
+    template_ext = ()
+    ui_color = '#f4a460'
+
+    @apply_defaults
+    def __init__(self,
+                 source_type,
+                 source_path,
+                 source_conn_id=None,
+                 dest_path=None,
+                 *args, **kwargs):
+        super(FolderDownloadOperator, self).__init__(*args, **kwargs)
+
+        self.source_type = source_type
+        self.source_conn_id = source_conn_id
+        self.source_path = source_path
+
+        self.SourceHook = CommonFileHook.by_type(source_type)
+
+        self.dest_path = dest_path
+
+    def execute(self, context):
+        if not self.dest_path:
+            self.create_temp_dest()
+        self.download_source()
+
+        # Return the destination path as an xcom variable
+        return self.dest_path
+
+    def create_temp_dest(self):
+        try:
+            dest = mkstemp()
+            self.dest_path = dest.name
+            dest.close()
+        except e:
+            raise AirflowException("Failed to create temporary folder for download: {}".format(e))
+        else:
+            logging.info("Created a temporary folder for download at {}".format(self.dest_path))
+
+    def download_source(self):
+        logging.info("Downloading folder {} from {} source {} to local folder {}."
+            .format(self.source_path, self.source_type, self.source_conn_id, self.dest_path))
+        self.SourceHook(self.source_conn_id).download_folder(self.source_path, self.dest_path)
 
 class FileTransferOperator(BaseOperator):
     """
@@ -424,5 +496,5 @@ class CleanupOperator(BaseOperator):
 
 class FileTransferPlugin(AirflowPlugin):
     name = "file_transfer_plugin"
-    operators = [CleanupOperator, FileDownloadOperator, FileTransferOperator, FileTransformOperator]
+    operators = [CleanupOperator, FileDownloadOperator, FolderDownloadOperator, FileTransferOperator, FileTransformOperator]
     hooks = [CommonFileHook, CommonFSHook, CommonFTPHook, CommonFTPSHook, CommonS3Hook]
