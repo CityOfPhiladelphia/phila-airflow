@@ -11,15 +11,6 @@ from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
 
-def get_chunk(iterator, size):
-    for _ in range(size):
-        yield next(iterator)
-
-def chunks(iterable, size):
-    iterator = iter(iterable)
-    while True:
-        yield get_chunk(iterator, size)
-
 def lower_keys_dict(d):
     lower_d = {}
     for k in d:
@@ -27,30 +18,43 @@ def lower_keys_dict(d):
     return lower_d
 
 class DatumHook (BaseHook):
+    SCHEMAS = {
+        'postgres': 'postgis',
+        'oracle': 'oracle-stgeom',
+    }
+
     def __init__(self, db_conn_id, conn=None):
         self.db_conn_id = db_conn_id
         self.conn = conn
+        self.conn_str = None
+
+    def get_conn_str(self):
+        if self.conn_str is None:
+            params = self.get_connection(self.db_conn_id)
+            self.conn_str = '{schema}://{auth}@{host}{port}{path}'.format(
+                schema=self.SCHEMAS[params.conn_type],
+                auth=params.login + ':' + params.password,
+                host=params.host,
+                port=(':' + str(params.port) if params.port else ''),
+                path=('/' + params.schema if params.schema else '')
+            )
+            logging.info(self.conn_str)
+        return self.conn_str
 
     def get_conn(self):
-        SCHEMAS = {
-            'postgres': 'postgis',
-            'oracle': 'oracle-stgeom',
-        }
-
         if self.conn is None:
             params = self.get_connection(self.db_conn_id)
 
-            if params.conn_type not in SCHEMAS:
+            if params.conn_type not in self.SCHEMAS:
                 raise AirflowException('Could not create Datum connection for connection type {}'.format(params.conn_type))
 
             logging.info('Establishing connection to {}'.format(self.db_conn_id))
-            auth = params.login + ':' + params.password
-            conn_string = SCHEMAS[params.conn_type] + '://' + auth + '@' + params.extra_dejson.get('tns')
+            conn_string = self.get_conn_str()
             self.conn = datum.connect(conn_string)
         return self.conn
 
 
-class DatumCSV2TableOperator(BaseOperator):
+class DatumLoadOperator(BaseOperator):
     """
     Load a CSV file into a database table
 
@@ -79,7 +83,7 @@ class DatumCSV2TableOperator(BaseOperator):
                  db_field_overrides=None,
                  sql_override=None,
                  *args, **kwargs):
-        super(DatumCSV2TableOperator, self).__init__(*args, **kwargs)
+        super(DatumLoadOperator, self).__init__(*args, **kwargs)
         self.db_conn_id = db_conn_id
         self.db_table_name = db_table_name
         self.csv_path = csv_path
@@ -88,50 +92,34 @@ class DatumCSV2TableOperator(BaseOperator):
         self.sql_override = sql_override
 
     def execute(self, context):
-        logging.info("Connecting to the database")
+        logging.info("Connecting to the database {}".format(self.db_conn_id))
         self.hook = DatumHook(db_conn_id=self.db_conn_id)
         self.conn = self.hook.get_conn()
 
-        table = self.db_table_name
-
-        with open(self.csv_path) as csvfile:
-            rows = csv.DictReader(csvfile)
-
-            self.create_table_if_not_exist(n.lower() for n in rows.fieldnames)
-            self.truncate_table()
-
-            logging.info("Inserting rows into table, 1000 at a time")
-            for chunk in chunks((lower_keys_dict(row) for row in rows), 1000):
-                self.conn.table(table).write(list(chunk))
+        with open(self.csv_path, 'rU') as csvfile:
+            if self.truncate:
+                self.truncate_table()
+            self.load_table(csvfile, chunk_size=1000)
 
         logging.info("Done!")
 
-    def create_table_if_not_exist(self, fieldnames):
-        table = self.db_table_name
-
-        logging.info('Checking whether table {} exists'.format(table))
-        if table.upper() in self.conn.tables:
-            logging.info('Table {} already exists.'.format(table))
-            return
-
-        fielddefs = ',\n'.join(
-            '"{}" {}'.format(fieldname.lower(), self.db_field_overrides.get(fieldname, 'VARCHAR2(4000)'))
-            for fieldname in fieldnames
-        )
-        sql = self.sql_override or 'CREATE TABLE {} ({})'.format(table, fielddefs)
-
-        logging.info('Creating the table: {}'.format(sql))
-        self.conn.execute(sql)
-
     def truncate_table(self):
-        table = self.db_table_name
+        table_name = self.db_table_name
 
-        if self.truncate:
-            logging.info("Truncating the {} table".format(table))
-            self.conn._child.truncate(table)
+        logging.info("Truncating the {} table".format(table_name))
+        table = self.conn.table(table_name)
+        table.delete()
+
+    def load_table(self, csvfile, chunk_size=None):
+        table_name = self.db_table_name
+
+        logging.info("Loading data into the {} table{}".format(
+            table_name, ', {} rows at a time'.format(chunk_size) if chunk_size else ''))
+        table = self.conn.table(table_name)
+        table.load(csvfile, chunk_size=chunk_size)
 
 
 class DatumPlugin(AirflowPlugin):
     name = "datum_plugin"
-    operators = [DatumCSV2TableOperator]
+    operators = [DatumLoadOperator]
     hooks = [DatumHook]

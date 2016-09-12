@@ -9,7 +9,7 @@ Connections:
 from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
-from airflow.operators import DatumCSV2TableOperator
+from airflow.operators import DatumLoadOperator
 from airflow.operators import CleanupOperator
 from airflow.operators import FileDownloadOperator
 from airflow.operators import SlackNotificationOperator
@@ -29,6 +29,8 @@ default_args = {
     # 'queue': 'bash_queue',  # TODO: Lookup what queue is
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
+
+db_conn_id = 'phl-warehouse-staging'
 
 pipeline = DAG('etl_opa_local_v1', default_args=default_args)
 
@@ -142,48 +144,48 @@ transform_e = BashOperator(
 # ------------------------------------------------------------
 # Load - copy tables into on-prem database(s)
 
-load_a = DatumCSV2TableOperator(
+load_a = DatumLoadOperator(
     task_id='load_properties',
     dag=pipeline,
 
     csv_path='{{ ti.xcom_pull("staging") }}/properties.csv',
-    db_conn_id='phl-warehouse-local',
+    db_conn_id=db_conn_id,
     db_table_name='opa_properties',
 )
 
-load_b = DatumCSV2TableOperator(
+load_b = DatumLoadOperator(
     task_id='load_building_codes',
     dag=pipeline,
 
     csv_path='{{ ti.xcom_pull("staging") }}/building_codes.csv',
-    db_conn_id='phl-warehouse-local',
+    db_conn_id=db_conn_id,
     db_table_name='opa_building_codes',
 )
 
-load_c = DatumCSV2TableOperator(
+load_c = DatumLoadOperator(
     task_id='load_street_codes',
     dag=pipeline,
 
     csv_path='{{ ti.xcom_pull("staging") }}/street_codes.csv',
-    db_conn_id='phl-warehouse-local',
+    db_conn_id=db_conn_id,
     db_table_name='opa_street_codes',
 )
 
-load_d = DatumCSV2TableOperator(
+load_d = DatumLoadOperator(
     task_id='load_off_property',
     dag=pipeline,
 
     csv_path='{{ ti.xcom_pull("staging") }}/off_property.csv',
-    db_conn_id='phl-warehouse-local',
+    db_conn_id=db_conn_id,
     db_table_name='opa_off_property',
 )
 
-load_e = DatumCSV2TableOperator(
+load_e = DatumLoadOperator(
     task_id='load_assessment_history',
     dag=pipeline,
 
     csv_path='{{ ti.xcom_pull("staging") }}/assessment_history.csv',
-    db_conn_id='phl-warehouse-local',
+    db_conn_id=db_conn_id,
     db_table_name='opa_assessment_history',
 )
 

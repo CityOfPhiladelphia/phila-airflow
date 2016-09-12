@@ -9,7 +9,7 @@ Connections:
 from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
-from airflow.operators import DatumCSV2TableOperator
+from airflow.operators import DatumLoadOperator
 from airflow.operators import CleanupOperator
 from airflow.operators import FileDownloadOperator
 from airflow.operators import SlackNotificationOperator
@@ -152,7 +152,7 @@ transform_e = BashOperator(
 # ------------------------------------------------------------
 # Load - copy tables into on-prem database(s)
 
-load_a = DatumCSV2TableOperator(
+load_a = DatumLoadOperator(
     task_id='load_properties',
     dag=pipeline,
 
@@ -161,7 +161,7 @@ load_a = DatumCSV2TableOperator(
     db_table_name='opa_properties',
 )
 
-load_b = DatumCSV2TableOperator(
+load_b = DatumLoadOperator(
     task_id='load_building_codes',
     dag=pipeline,
 
@@ -170,7 +170,7 @@ load_b = DatumCSV2TableOperator(
     db_table_name='opa_building_codes',
 )
 
-load_c = DatumCSV2TableOperator(
+load_c = DatumLoadOperator(
     task_id='load_street_codes',
     dag=pipeline,
 
@@ -179,7 +179,7 @@ load_c = DatumCSV2TableOperator(
     db_table_name='opa_street_codes',
 )
 
-load_d = DatumCSV2TableOperator(
+load_d = DatumLoadOperator(
     task_id='load_off_property',
     dag=pipeline,
 
@@ -188,7 +188,7 @@ load_d = DatumCSV2TableOperator(
     db_table_name='opa_off_property',
 )
 
-load_e = DatumCSV2TableOperator(
+load_e = DatumLoadOperator(
     task_id='load_assessment_history',
     dag=pipeline,
 
