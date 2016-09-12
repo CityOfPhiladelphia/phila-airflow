@@ -13,6 +13,7 @@ from airflow.operators import DatumCSV2TableOperator
 from airflow.operators import CleanupOperator
 from airflow.operators import FileDownloadOperator
 from airflow.operators import SlackNotificationOperator
+from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from datetime import datetime, timedelta
 
 # ============================================================
@@ -34,15 +35,9 @@ pipeline = DAG('etl_opa_local_v1', default_args=default_args)
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
 
-def mkdir():
-    import tempfile
-    return tempfile.mkdtemp()
-
-mk_staging = PythonOperator(
+mk_staging = CreateStagingFolder(
     task_id='staging',
     dag=pipeline,
-
-    python_callable=mkdir,
 )
 
 extract_a = FileDownloadOperator(
@@ -195,10 +190,10 @@ load_e = DatumCSV2TableOperator(
 # ------------------------------------------------------------
 # Postscript - clean up the staging area
 
-cleanup = CleanupOperator(
+cleanup = DestroyStagingFolder(
     task_id='cleanup_staging',
     dag=pipeline,
-    paths='{{ ti.xcom_pull("staging") }}',
+    dir='{{ ti.xcom_pull("staging") }}',
 )
 
 
