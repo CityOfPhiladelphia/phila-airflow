@@ -1,9 +1,5 @@
 """
 ETL Pipeline for OPA Data
-
-Connections:
-- phl-s3-etl (must have credentials set in a JSON object in the Extra field,
-  i.e.: {"aws_access_key_id":"...", "aws_secret_access_key":"..."})
 """
 
 from airflow import DAG
@@ -11,8 +7,9 @@ from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumLoadOperator
 from airflow.operators import CleanupOperator
-from airflow.operators import FileDownloadOperator
+from airflow.operators import FolderDownloadOperator
 from airflow.operators import SlackNotificationOperator
+from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from datetime import datetime, timedelta
 
 # ============================================================
@@ -29,23 +26,17 @@ default_args = {
     # 'pool': 'backfill',  # TODO: Lookup what pool is
 }
 
-pipeline = DAG('etl_opa_v2', default_args=default_args)  # TODO: Look up how to schedule a DAG
+pipeline = DAG('etl_opa_v3', default_args=default_args)  # TODO: Look up how to schedule a DAG
 
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
 
-def mkdir():
-    import tempfile
-    return tempfile.mkdtemp()
-
-mk_staging = PythonOperator(
+mk_staging = CreateStagingFolder(
     task_id='staging',
     dag=pipeline,
-
-    python_callable=mkdir,
 )
 
-extract_a = FileDownloadOperator(
+extract = FolderDownloadOperator(
     task_id='download_properties',
     dag=pipeline,
 
@@ -56,50 +47,6 @@ extract_a = FileDownloadOperator(
     dest_path='{{ ti.xcom_pull("staging") }}/br63trf.os13sd',
 )
 
-extract_b = FileDownloadOperator(
-    task_id='download_building_codes',
-    dag=pipeline,
-
-    source_type='sftp',
-    source_conn_id='phl-ftp-etl',
-    source_path='/OPA_Property_CD/\'br63trf.buildcod\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.buildcod',
-)
-
-extract_c = FileDownloadOperator(
-    task_id='download_street_codes',
-    dag=pipeline,
-
-    source_type='sftp',
-    source_conn_id='phl-ftp-etl',
-    source_path='/OPA_Property_CD/\'br63trf.stcode\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.stcode',
-)
-
-extract_d = FileDownloadOperator(
-    task_id='download_off_property',
-    dag=pipeline,
-
-    source_type='sftp',
-    source_conn_id='phl-ftp-etl',
-    source_path='/OPA_Property_CD/\'br63trf.offpr\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.offpr',
-)
-
-extract_e = FileDownloadOperator(
-    task_id='download_assessment_history',
-    dag=pipeline,
-
-    source_type='sftp',
-    source_conn_id='phl-ftp-etl',
-    source_path='/OPA_Property_CD/\'br63trf.nicrt4wb\'',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb',
-)
-
 # ------------------------------------------------------------
 # Transform - run each table through a cleanup script
 
@@ -108,7 +55,7 @@ transform_a = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.os13sd | '
+        'cat {{ ti.xcom_pull("staging") }}/input/\\\'br63trf.os13sd\\\' | '
         'phl-properties > {{ ti.xcom_pull("staging") }}/properties.csv',
 )
 
@@ -117,7 +64,7 @@ transform_b = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.buildcod | '
+        'cat {{ ti.xcom_pull("staging") }}/input/\\\'br63trf.buildcod\\\' | '
         'phl-building-codes > {{ ti.xcom_pull("staging") }}/building_codes.csv',
 )
 
@@ -126,8 +73,8 @@ transform_c = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.buildcod | '
-        'phl-street-codes > {{ ti.xcom_pull("staging") }}/building_codes.csv',
+        'cat {{ ti.xcom_pull("staging") }}/input/\\\'br63trf.stcode\\\' | '
+        'phl-street-codes > {{ ti.xcom_pull("staging") }}/street_codes.csv',
 )
 
 transform_d = BashOperator(
@@ -135,7 +82,7 @@ transform_d = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.offpr | '
+        'cat {{ ti.xcom_pull("staging") }}/input/\\\'br63trf.offpr\\\' | '
         'phl-off-property > {{ ti.xcom_pull("staging") }}/off_property.csv',
 )
 
@@ -144,7 +91,7 @@ transform_e = BashOperator(
     dag=pipeline,
 
     bash_command=
-        'cat {{ ti.xcom_pull("staging") }}/br63trf.nicrt4wb | '
+        'cat {{ ti.xcom_pull("staging") }}/input/\\\'br63trf.nicrt4wb\\\' | '
         'phl-assessment-history > {{ ti.xcom_pull("staging") }}/assessment_history.csv',
 )
 
@@ -210,8 +157,10 @@ cleanup = CleanupOperator(
 # ============================================================
 # Configure the pipeline's dag
 
-mk_staging >> extract_a >> transform_a >> load_a >> cleanup
-mk_staging >> extract_b >> transform_b >> load_b >> cleanup
-mk_staging >> extract_c >> transform_c >> load_c >> cleanup
-mk_staging >> extract_d >> transform_d >> load_d >> cleanup
-mk_staging >> extract_e >> transform_e >> load_e >> cleanup
+mk_staging >> extract
+
+extract >> transform_a >> load_a >> cleanup
+extract >> transform_b >> load_b >> cleanup
+extract >> transform_c >> load_c >> cleanup
+extract >> transform_d >> load_d >> cleanup
+extract >> transform_e >> load_e >> cleanup

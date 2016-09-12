@@ -1,9 +1,5 @@
 """
 ETL Pipeline for OPA Data
-
-Connections:
-- phl-s3-etl (must have credentials set in a JSON object in the Extra field,
-  i.e.: {"aws_access_key_id":"...", "aws_secret_access_key":"..."})
 """
 
 from airflow import DAG
