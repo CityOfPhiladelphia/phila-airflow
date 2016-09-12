@@ -11,7 +11,7 @@ git+https://github.com/CityOfPhiladelphia/property-assessments-data-pipeline.git
 # Databases (Oracle)
 
 cx_Oracle==5.2.1
-git+https://github.com/CityOfPhiladelphia/datum.git@f0ddfcd#egg=datum
+git+https://github.com/CityOfPhiladelphia/datum.git@cc79e47e#egg=datum
 
 # -------------------------------------
 # Better SFTP support
