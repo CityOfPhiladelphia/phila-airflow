@@ -1,0 +1,1 @@
+create table "opa_street_codes" ("stname" varchar(32), "dir" varchar(4) null, "dsg" varchar(4) null, "stcode" integer)
