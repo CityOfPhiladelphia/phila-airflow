@@ -39,6 +39,49 @@ Use the output of that command as the `fernet_key` value.
 
 ## Dag Construction
 
+### Creating your transformation script
+
+Portions of a DAG can exist in code outside of the phl-airflow repository. For
+example, you may want to create transformation scripts that can be plugged in
+to Airflow that get installed when the server is deployed. Creating these as
+separate scripts can make them easier to test.
+
+Two handy libraries for writing transformation scripts are:
+* [petl](https://petl.readthedocs.io/en/latest/)
+* [click](http://click.pocoo.org/)
+
+Also, to gain insight into any exceptions as they occur, install and list the
+[raven](https://docs.sentry.io/hosted/clients/python/) library as a dependency
+for your script.
+
+```python
+import click
+import petl
+import raven
+
+
+# NOTE: The following function is just a sample command. Neither the name of
+# the function nor the contents are special. They are simply for demonstration.
+@click.command()
+def cmd():
+    t = petl.fromcsv('...')\
+        .addfield('foo', 1)\
+        .addfield('bar', lambda r: r[foo] + 1)
+        .cutout('baz')\
+        .tocsv()
+
+
+if __name__ == '__main__':
+    client = raven.Client()
+    try:
+        cmd()  # Call the function defined above.
+    except:
+        client.captureException()
+        raise
+```
+
+
+
 You can reuse your own python modules in pipelines. In order to use a module,
 it must be installable -- e.g., it should have a *setup.py* file. A minimal
 *setup.py* file looks something like:
@@ -47,11 +90,15 @@ it must be installable -- e.g., it should have a *setup.py* file. A minimal
 from distutils.core import setup
 
 setup(
-    name='phl-simple',
+    name='phl-data-transformation',
     version='1.0.0',
-    scripts=['simple.py'],
+    scripts=['transform.py'],
 )
 ```
+
+### Defining the DAG
+
+You should think of your pipeline as a series of stages.
 
 ```python
 
