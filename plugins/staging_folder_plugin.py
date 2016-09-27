@@ -21,6 +21,7 @@ class CreateStagingFolder (BaseOperator):
     https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp
     """
     template_fields = ('dir',)
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self, dir=None,
@@ -39,6 +40,7 @@ class DestroyStagingFolder (BaseOperator):
     Delete a folder created for storing working files.
     """
     template_fields = ('dir',)
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self, dir,
