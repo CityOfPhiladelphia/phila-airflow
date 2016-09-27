@@ -9,8 +9,8 @@ from airflow import DAG
 from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import FileDownloadOperator
-from airflow.operators import DatumLoadOperator
-from airflow.operators import CleanupOperator
+from airflow.operators import DatumLoadOperator, DatumExecuteOperator
+from airflow.operators import CreateStagingFolder, DestroyStagingFolder
 from airflow.operators import SlackNotificationOperator
 from datetime import datetime, timedelta
 
@@ -56,10 +56,27 @@ transform_delq = BashOperator(
 
 )
 
-cleanup = CleanupOperator(
-    task_id='cleanup_staging',
+load_delq = DatumLoadOperator(
+    task_id='load_delq',
     dag=pipeline_delq,
-    paths='{{ ti.xcom_pull("staging") }}',
+
+    csv_path='{{ ti.xcom_pull("staging") }}/out.csv',
+    db_conn_id='phl-warehouse-staging',
+    db_table_name='tax_delq',
 )
 
-mk_staging >> extract_delq >> transform_delq >> cleanup
+geocode_delq = DatumExecuteOperator(
+    task_id='geocode_delq',
+    dag=pipeline_delq,
+
+    sql='''-- Refresh the public materialized view''',
+    db_conn_id='phl-warehouse-staging',
+)
+
+cleanup = DestroyStagingFolder(
+    task_id='cleanup_staging',
+    dag=pipeline_delq,
+    dir='{{ ti.xcom_pull("staging") }}',
+)
+
+mk_staging >> extract_delq >> transform_delq >> load_delq >> geocode_delq >> cleanup
