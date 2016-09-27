@@ -120,7 +120,41 @@ class DatumLoadOperator(BaseOperator):
         table.load(csvfile, chunk_size=chunk_size)
 
 
+class DatumExecuteOperator(BaseOperator):
+    """
+    Execute a SQL command
+
+    :param db_conn_id: The connection to run the operator against.
+    :type db_conn_id: string
+    :param db_table_name: The name of the table to load into.
+    :type db_table_name: string
+    :param sql: The sql command to run
+    :type sql: string
+    """
+
+    template_fields = ('sql',)
+    ui_color = '#f0ede4'
+
+    @apply_defaults
+    def __init__(self,
+                 db_conn_id,
+                 sql,
+                 *args, **kwargs):
+        super(DatumExecuteOperator, self).__init__(*args, **kwargs)
+        self.db_conn_id = db_conn_id
+        self.sql = sql
+
+    def execute(self, context):
+        logging.info("Connecting to the database {}".format(self.db_conn_id))
+        self.hook = DatumHook(db_conn_id=self.db_conn_id)
+        self.conn = self.hook.get_conn()
+
+        logging.info("Running the SQL command: {}".format(self.sql))
+        self.conn.execute(self.sql)
+        logging.info("Done!")
+
+
 class DatumPlugin(AirflowPlugin):
     name = "datum_plugin"
-    operators = [DatumLoadOperator]
+    operators = [DatumExecuteOperator, DatumLoadOperator]
     hooks = [DatumHook]
