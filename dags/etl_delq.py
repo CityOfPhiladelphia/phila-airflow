@@ -19,14 +19,14 @@ from datetime import datetime, timedelta
 
 default_args = {
     'owner': 'airflow',
-    # 'depends_on_past' False,
-    'retries': 0,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2017, 1, 1, 0, 0, 0),
     'on_failure_callback': SlackNotificationOperator.failed(),
 }
 
-pipeline_delq = DAG('etl_delq_v1', default_args=default_args)
+pipeline_delq = DAG('etl_delq_v1',
+    start_date=datetime.now() - timedelta(days=1),
+    schedule_interval='@monthly',
+    default_args=default_args
+)
 
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
