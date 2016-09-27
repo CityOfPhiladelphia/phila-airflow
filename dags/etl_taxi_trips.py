@@ -29,7 +29,7 @@ pipeline = DAG('etl_taxi_trips_v1', default_args=default_args)
 # Extract - create a staging folder and copy there
 mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 
-extract = FolderDownloadOperator(task_id='download_properties', dag=pipeline,
+extract = FolderDownloadOperator(task_id='download_taxi_trips', dag=pipeline,
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
     source_path='/Taxi',
