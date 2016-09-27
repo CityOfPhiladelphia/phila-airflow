@@ -24,12 +24,12 @@ default_args = {
     'on_failure_callback': SlackNotificationOperator.failed(),
 }
 
-pipeline = DAG('etl_taxi_trips_v1', default_args=default_args)
+pipeline = DAG('etl_taxi_trips_v2', default_args=default_args)
 
 # Extract - create a staging folder and copy there
 mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 
-extract = FolderDownloadOperator(task_id='download_properties', dag=pipeline,
+extract = FolderDownloadOperator(task_id='download', dag=pipeline,
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
     source_path='/Taxi',
@@ -38,7 +38,7 @@ extract = FolderDownloadOperator(task_id='download_properties', dag=pipeline,
 )
 
 # Transform - merge all of the downloaded files into one CSV
-transform = BashOperator(task_id='merge_trips', dag=pipeline,
+normalize = BashOperator(task_id='merge_and_norm', dag=pipeline,
     bash_command=
         'taxitrips.py transform '
         '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
@@ -48,7 +48,29 @@ transform = BashOperator(task_id='merge_trips', dag=pipeline,
 
 # Load - Insert the merged data into an Oracle table; update the anonymization
 #        mapping.
-load = DatumLoadOperator(task_id='load_properties', dag=pipeline,
+load_raw = DatumLoadOperator(task_id='load_raw', dag=pipeline,
+    csv_path='{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+    db_conn_id='phl-warehouse-staging',
+    db_table_name='taxi_trips',
+)
+
+fuzzy = BashOperator(task_id='fuzzy_time_and_loc', dag=pipeline,
+    bash_command=
+        'taxitrips.py transform '
+        '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
+        '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
+        '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+)
+
+anonymize = BashOperator(task_id='anonymize', dag=pipeline,
+    bash_command=
+        'taxitrips.py anonymize '
+        '  "{{ ti.xcom_pull("staging") }}/fuzzied_trips.csv"'
+        '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
+        '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+)
+
+load_public = DatumLoadOperator(task_id='load_public', dag=pipeline,
     csv_path='{{ ti.xcom_pull("staging") }}/merged_trips.csv',
     db_conn_id='phl-warehouse-staging',
     db_table_name='taxi_trips',
@@ -62,4 +84,9 @@ cleanup = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
 # ============================================================
 # Configure the pipeline's dag
 
-mk_staging >> extract >> transform >> load >> cleanup
+mk_staging >> extract >> normalize
+
+normalize >> load_raw >> anonymize
+normalize >> fuzzy >> anonymize
+
+anonymize >> load_public >> cleanup
