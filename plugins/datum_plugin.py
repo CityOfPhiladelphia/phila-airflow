@@ -73,6 +73,7 @@ class DatumLoadOperator(BaseOperator):
     """
 
     template_fields = ('db_table_name','csv_path',)
+    ui_color = '#88ccff'
 
     @apply_defaults
     def __init__(self,

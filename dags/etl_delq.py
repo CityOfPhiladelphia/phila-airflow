@@ -31,16 +31,7 @@ pipeline_delq = DAG('etl_delq_v1', default_args=default_args)
 # ------------------------------------------------------------
 # Extract - copy files to the staging area
 
-def mkdir( ):
-    import tempfile
-    return tempfile.mkdtemp()
-
-mk_staging = PythonOperator(
-    task_id='staging',
-    dag=pipeline_delq,
-
-    python_callable=mkdir,
-)
+mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline_delq)
 
 extract_delq = FileDownloadOperator(
     task_id='download_delq',

@@ -237,7 +237,7 @@ class FileDownloadOperator(BaseOperator):
     """
     template_fields = ('source_path','dest_path',)
     template_ext = ()
-    ui_color = '#f4a460'
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self,
@@ -285,7 +285,7 @@ class FolderDownloadOperator(BaseOperator):
     """
     template_fields = ('source_path','dest_path',)
     template_ext = ()
-    ui_color = '#f4a460'
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self,
@@ -343,7 +343,7 @@ class FileTransferOperator(BaseOperator):
 
     template_fields = ('source_path','dest_path',)
     template_ext = ()
-    ui_color = '#f4a460'
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self,
@@ -462,7 +462,7 @@ class CleanupOperator(BaseOperator):
     """
     template_fields = ('paths',)
     template_ext = ()
-    ui_color = '#f4a460'
+    ui_color = '#ffcc44'
 
     @apply_defaults
     def __init__(self,
