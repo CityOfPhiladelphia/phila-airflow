@@ -18,13 +18,14 @@ from datetime import datetime, timedelta
 
 default_args = {
     'owner': 'airflow',
-    'retries': 2,
-    'retry_delay': timedelta(minutes=5),
-    'start_date': datetime(2017, 1, 1, 0, 0, 0),
     'on_failure_callback': SlackNotificationOperator.failed(),
 }
 
-pipeline = DAG('etl_taxi_trips_v2', default_args=default_args)
+pipeline = DAG('etl_taxi_trips_v2',
+    start_date=datetime.now() - timedelta(days=1),
+    schedule_interval='@weekly',
+    default_args=default_args
+)
 
 # Extract - create a staging folder and copy there
 mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
