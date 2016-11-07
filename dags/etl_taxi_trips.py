@@ -33,7 +33,7 @@ pipeline = DAG('etl_taxi_trips_v3',
 # 2. Check twice per day to see whether the data has been uploaded
 # 3. When the data is available, download into the staging folder
 
-mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
+make_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 
 wait_for_verifone = FileAvailabilitySensor(task_id='wait_for_verifone', dag=pipeline,
     source_type='sftp',
@@ -73,7 +73,7 @@ download_cmt = FolderDownloadOperator(task_id='download_cmt', dag=pipeline,
 # 3. Generalize ("fuzzy") the pickup and dropoff locations and times.
 # 4. Insert the anonymized and fuzzied data into a public table.
 
-normalize = BashOperator(task_id='merge_and_norm', dag=pipeline,
+merge_and_norm = BashOperator(task_id='merge_and_norm', dag=pipeline,
     bash_command=
         'taxitrips.py transform '
         '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
@@ -109,7 +109,7 @@ load_public = DatumLoadOperator(task_id='load_public', dag=pipeline,
     db_table_name='taxi_trips',
 )
 
-cleanup = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
+cleanup_staging = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
     dir='{{ ti.xcom_pull("staging") }}',
 )
 
@@ -117,10 +117,10 @@ cleanup = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
 # ============================================================
 # Configure the pipeline's dag
 
-mk_staging  >>    wait_for_cmt     >>    download_cmt     >>  normalize
-mk_staging  >>  wait_for_verifone  >>  download_verifone  >>  normalize
+make_staging  >>    wait_for_cmt     >>    download_cmt     >>  merge_and_norm
+make_staging  >>  wait_for_verifone  >>  download_verifone  >>  merge_and_norm
 
-normalize  >>  load_raw  >>  anonymize
-normalize  >>   fuzzy    >>  anonymize
+merge_and_norm  >>  load_raw  >>  anonymize
+merge_and_norm  >>   fuzzy    >>  anonymize
 
-anonymize  >>  load_public  >>  cleanup
+anonymize  >>  load_public  >>  cleanup_staging
