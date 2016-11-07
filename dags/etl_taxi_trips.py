@@ -90,21 +90,19 @@ load_raw = DatumLoadOperator(task_id='load_raw', dag=pipeline,
 fuzzy = BashOperator(task_id='fuzzy_time_and_loc', dag=pipeline,
     bash_command=
         'taxitrips.py transform '
-        '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
-        '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
-        '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+        '  {{ ti.xcom_pull("staging") }}/merged_trips.csv > '
+        '{{ ti.xcom_pull("staging") }}/fuzzied_trips.csv',
 )
 
 anonymize = BashOperator(task_id='anonymize', dag=pipeline,
     bash_command=
         'taxitrips.py anonymize '
-        '  "{{ ti.xcom_pull("staging") }}/fuzzied_trips.csv"'
-        '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
-        '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+        '  "{{ ti.xcom_pull("staging") }}/fuzzied_trips.csv" > '
+        '{{ ti.xcom_pull("staging") }}/anonymized_trips.csv',
 )
 
 load_public = DatumLoadOperator(task_id='load_public', dag=pipeline,
-    csv_path='{{ ti.xcom_pull("staging") }}/merged_trips.csv',
+    csv_path='{{ ti.xcom_pull("staging") }}/anonymized_trips.csv',
     db_conn_id='phl-warehouse-staging',
     db_table_name='taxi_trips',
 )
