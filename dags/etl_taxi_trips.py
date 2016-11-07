@@ -9,7 +9,7 @@ from airflow.operators import BashOperator
 from airflow.operators import PythonOperator
 from airflow.operators import DatumLoadOperator
 from airflow.operators import CreateStagingFolder, DestroyStagingFolder
-from airflow.operators import FolderDownloadOperator
+from airflow.operators import FolderDownloadOperator, FileAvailabilitySensor
 from airflow.operators import SlackNotificationOperator
 from datetime import datetime, timedelta
 
@@ -21,24 +21,58 @@ default_args = {
     'on_failure_callback': SlackNotificationOperator.failed(),
 }
 
-pipeline = DAG('etl_taxi_trips_v2',
+pipeline = DAG('etl_taxi_trips_v3',
     start_date=datetime.now() - timedelta(days=1),
     schedule_interval='@weekly',
     default_args=default_args
 )
 
-# Extract - create a staging folder and copy there
+# Extract
+# -------
+# 1. Create a staging folder
+# 2. Check twice per day to see whether the data has been uploaded
+# 3. When the data is available, download into the staging folder
+
 mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 
-extract = FolderDownloadOperator(task_id='download', dag=pipeline,
+wait_for_verifone = FileAvailabilitySensor(task_id='wait_for_verifone', dag=pipeline,
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
-    source_path='/Taxi',
-
-    dest_path='{{ ti.xcom_pull("staging") }}/input',
+    source_path='/Taxi/verifone/*',
+    poke_interval=43200,
 )
 
-# Transform - merge all of the downloaded files into one CSV
+wait_for_cmt = FileAvailabilitySensor(task_id='wait_for_cmt', dag=pipeline,
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/Taxi/cmt/*',
+    poke_interval=43200,
+)
+
+download_verifone = FolderDownloadOperator(task_id='download_verifone', dag=pipeline,
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/Taxi/verifone',
+
+    dest_path='{{ ti.xcom_pull("staging") }}/input/verifone',
+)
+
+download_cmt = FolderDownloadOperator(task_id='download_cmt', dag=pipeline,
+    source_type='sftp',
+    source_conn_id='phl-ftp-etl',
+    source_path='/Taxi/cmt',
+
+    dest_path='{{ ti.xcom_pull("staging") }}/input/cmt',
+)
+
+# Transform & Load
+# ----------------
+# 0. Merge all of the downloaded files into one CSV
+# 1. Insert the merged data into an Oracle table.
+# 2. Update the anonymization mapping tables.
+# 3. Generalize ("fuzzy") the pickup and dropoff locations and times.
+# 4. Insert the anonymized and fuzzied data into a public table.
+
 normalize = BashOperator(task_id='merge_and_norm', dag=pipeline,
     bash_command=
         'taxitrips.py transform '
@@ -47,8 +81,6 @@ normalize = BashOperator(task_id='merge_and_norm', dag=pipeline,
         '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
 )
 
-# Load - Insert the merged data into an Oracle table; update the anonymization
-#        mapping.
 load_raw = DatumLoadOperator(task_id='load_raw', dag=pipeline,
     csv_path='{{ ti.xcom_pull("staging") }}/merged_trips.csv',
     db_conn_id='phl-warehouse-staging',
@@ -85,9 +117,10 @@ cleanup = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
 # ============================================================
 # Configure the pipeline's dag
 
-mk_staging >> extract >> normalize
+mk_staging  >>    wait_for_cmt     >>    download_cmt     >>  normalize
+mk_staging  >>  wait_for_verifone  >>  download_verifone  >>  normalize
 
-normalize >> load_raw >> anonymize
-normalize >> fuzzy >> anonymize
+normalize  >>  load_raw  >>  anonymize
+normalize  >>   fuzzy    >>  anonymize
 
-anonymize >> load_public >> cleanup
+anonymize  >>  load_public  >>  cleanup
