@@ -39,14 +39,18 @@ wait_for_verifone = FileAvailabilitySensor(task_id='wait_for_verifone', dag=pipe
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
     source_path='/Taxi/verifone/*',
-    poke_interval=43200,
+
+    poke_interval=60*60*12,  # 12 hours
+    timeout=60*60*24*7,  # 1 week
 )
 
 wait_for_cmt = FileAvailabilitySensor(task_id='wait_for_cmt', dag=pipeline,
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
     source_path='/Taxi/cmt/*',
-    poke_interval=43200,
+
+    poke_interval=60*60*12,  # 12 hours
+    timeout=60*60*24*7,  # 1 week
 )
 
 download_verifone = FolderDownloadOperator(task_id='download_verifone', dag=pipeline,
