@@ -136,12 +136,14 @@ class CommonFTPHookMixin (CommonFileHook):
     def download(self, remotepath, localpath, replace=True):
         if not replace and exists(localpath):
             raise FileExistsError(localpath)
+        os.makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_file(remotepath, localpath)
 
     def download_folder(self, remotepath, localpath, replace=True):
         if exists(localpath):
             if replace: rmtree(localpath)
             else: raise FileExistsError(localpath)
+        os.makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
