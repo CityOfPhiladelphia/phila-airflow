@@ -1,5 +1,6 @@
 airflow[hive,celery,crypto,postgres,s3]==1.7.1.3
 raven==5.31.0
+redis
 
 # Transformation scripts
 git+https://github.com/CityOfPhiladelphia/property-assessments-data-pipeline.git#egg=phl-property==1.0.0
