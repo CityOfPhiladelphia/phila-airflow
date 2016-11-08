@@ -1,0 +1,5 @@
+
+export AIRFLOW_HOME=~/phila-airflow
+export AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
+export AIRFLOW__CORE__SQL_ALCHEMY_CONN=my_conn_string

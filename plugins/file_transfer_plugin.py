@@ -1,5 +1,6 @@
 import logging
 import pysftp
+import os
 import subprocess
 
 from airflow.plugins_manager import AirflowPlugin
@@ -9,6 +10,7 @@ from airflow.exceptions import AirflowException
 from airflow.hooks import BaseHook
 from airflow.hooks.S3_hook import S3Hook
 from airflow.models import BaseOperator
+from airflow.operators.sensors import BaseSensorOperator
 from airflow.utils.decorators import apply_defaults
 from past.builtins import basestring
 
@@ -25,6 +27,11 @@ class FileExistsError (Exception):
 
 
 class CommonFileHook (BaseHook):
+    """
+    Base class for hooks that implement the common file interface. Provides
+    an interface for opening a file for streaming, upload from and download to
+    a local file system, deleting files, checking existence, etc.
+    """
     def parse_mode(self, mode):
         return {
             'is_binary': 'b' in mode,
@@ -80,6 +87,12 @@ class CommonFileHook (BaseHook):
         """
         raise NotImplementedError
 
+    def file_exists(self, remotepath):
+        raise NotImplementedError
+
+    def folder_exists(self, remotepath):
+        raise NotImplementedError
+
 # ---------------------------------------------------------
 
 class CommonFSHook (CommonFileHook):
@@ -123,12 +136,14 @@ class CommonFTPHookMixin (CommonFileHook):
     def download(self, remotepath, localpath, replace=True):
         if not replace and exists(localpath):
             raise FileExistsError(localpath)
+        os.makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_file(remotepath, localpath)
 
     def download_folder(self, remotepath, localpath, replace=True):
         if exists(localpath):
             if replace: rmtree(localpath)
             else: raise FileExistsError(localpath)
+        os.makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
@@ -205,6 +220,42 @@ class PySFTPHook (FTPHook):
         conn.get_d(remote_full_path, local_full_path)
         logging.info('Finished retrieving folder from FTP: {}'.format(
             remote_full_path))
+
+    def _match_basename(self, dirname, basepattern, modefilter=None):
+        import stat
+        from fnmatch import fnmatch
+
+        conn = self.get_conn()
+        modefilter = modefilter or (lambda mode: True)
+
+        logging.info('Changing into folder {} to look for pattern {}'.format(dirname, basepattern))
+        with conn.cd(dirname):
+            basenames = [attrs.filename for attrs in conn.listdir_attr()
+                         if modefilter(attrs.st_mode) and fnmatch(attrs.filename, basepattern)]
+        logging.info('Found the following files: {}'.format(basenames))
+        return basenames
+
+    def file_exists(self, remote_full_path):
+        """
+        Check if a file exists. A pySFTP connection has an `isfile` method, but
+        we search a directory listing instead, so that we can support wildcard
+        matches.
+        """
+        from stat import S_ISREG
+        pathhead, pathtail = os.path.split(remote_full_path)
+        basenames = self._match_basename(pathhead, pathtail, modefilter=S_ISREG)
+        return len(basenames) > 0
+
+    def folder_exists(self, remote_full_path):
+        """
+        Check if a folder exists. A pySFTP connection has an `isdir` method, but
+        we search a directory listing instead, so that we can support wildcard
+        matches.
+        """
+        from stat import S_ISDIR
+        pathhead, pathtail = os.path.split(remote_full_path.rstrip('/'))
+        basenames = self._match_basename(pathhead, pathtail, modefilter=S_ISDIR)
+        return len(basenames) > 0
 
 class CommonFTPHook (FTPHook, CommonFTPHookMixin):
     def __init__(self, conn_id):
@@ -388,7 +439,6 @@ class FileTransferOperator(BaseOperator):
         for chunk in source:
             dest.write(chunk)
 
-
 class FileTransformOperator (FileTransferOperator):
     """
     Retrieve a file from a connection, transforms it by some executable script,
@@ -456,6 +506,55 @@ class FileTransformOperator (FileTransferOperator):
                          "Output temporarily located at {0}"
                          "".format(f_dest.name))
 
+class FileAvailabilitySensor (BaseSensorOperator):
+    """
+    Waits for a file to land in a connection.
+    """
+    template_fields = ('source_path',)
+    ui_color = '#ffcc44'
+
+    @apply_defaults
+    def __init__(self,
+                 source_type,
+                 source_path,
+                 source_conn_id=None,
+                 dest_path=None,
+                 *args, **kwargs):
+        super(FileAvailabilitySensor, self).__init__(*args, **kwargs)
+
+        self.source_type = source_type
+        self.source_conn_id = source_conn_id
+        self.source_path = source_path
+
+        self.SourceHook = CommonFileHook.by_type(source_type)
+
+    def poke(self, context):
+        return self.check_source()
+
+    def check_source(self):
+        logging.info("Checking existence of file {} on {} source {}."
+            .format(self.source_path, self.source_type, self.source_conn_id))
+        if self.SourceHook(self.source_conn_id).file_exists(self.source_path):
+            logging.info("File exist.")
+            return True
+        else:
+            logging.info("File does not exist.")
+            return False
+
+class FolderAvailabilitySensor (FileAvailabilitySensor):
+    """
+    Waits for a folder to land in a connection.
+    """
+    def check_source(self):
+        logging.info("Checking existence of folder {} on {} source {}."
+            .format(self.source_path, self.source_type, self.source_conn_id))
+        if self.SourceHook(self.source_conn_id).folder_exists(self.source_path):
+            logging.info("Folder does not exist.")
+            return True
+        else:
+            logging.info("Folder exists.")
+            return False
+
 class CleanupOperator(BaseOperator):
     """
     Recursively deletes a set of files or folders.
@@ -498,5 +597,7 @@ class CleanupOperator(BaseOperator):
 
 class FileTransferPlugin(AirflowPlugin):
     name = "file_transfer_plugin"
-    operators = [CleanupOperator, FileDownloadOperator, FolderDownloadOperator, FileTransferOperator, FileTransformOperator]
+    operators = [CleanupOperator, FileDownloadOperator, FolderDownloadOperator,
+        FileTransferOperator, FileTransformOperator,
+        FileAvailabilitySensor, FolderAvailabilitySensor]
     hooks = [CommonFileHook, CommonFSHook, CommonFTPHook, CommonFTPSHook, CommonS3Hook]

@@ -7,4 +7,5 @@ env/
 airflow.cfg
 airflow.db
 unittests.cfg
+*.rpm
 logs/
