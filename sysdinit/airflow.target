@@ -1,6 +1,6 @@
 [Unit]
 StopWhenUnneeded=true
-Wants=airflow-web.target airflow-worker.target airflow-scheduler.target
+Wants=airflow-web.service airflow-worker.service airflow-scheduler.service
 
 [Install]
 WantedBy=multi-user.target
