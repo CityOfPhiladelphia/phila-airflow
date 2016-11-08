@@ -12,6 +12,7 @@ pip install "airflow[hive]" cryptography Celery
 
 # install redis tools
 apt-get install -y redis-tools
+apt-get install -y redis-server
 
 # clone phila-airflow
 apt-get install -y git alien wget libaio1
