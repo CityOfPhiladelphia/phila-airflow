@@ -1,0 +1,6 @@
+[Unit]
+StopWhenUnneeded=true
+Wants=airflow-web.target airflow-worker.target airflow-scheduler.target
+
+[Install]
+WantedBy=multi-user.target
