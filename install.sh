@@ -3,7 +3,7 @@
 
 apt-get update
 
-# install phl-airflow dependencies
+# install phila-airflow dependencies
 apt-get install -y build-essential libssl-dev libffi-dev
 apt-get install -y python python-pip python-setuptools python-dev python-psycopg2 postgresql-client postgresql-client-common 
 
@@ -13,7 +13,7 @@ pip install "airflow[hive]" cryptography Celery
 # install redis tools
 apt-get install -y redis-tools
 
-# clone phl-airflow
+# clone phila-airflow
 apt-get install -y git alien wget libaio1
 
 # grab instant sql-plus instant oracle client/ rename downloaded file and install with alien
@@ -43,7 +43,7 @@ apt-get install -y libspatialindex-dev
 pip install -r ./requirements.txt
 
 # setup airflow environment variables
-export AIRFLOW_HOME=~/phl-airflow
+export AIRFLOW_HOME=~/phila-airflow
 export AIRFLOW__CORE__EXECUTOR=CeleryExecutor
 export AIRFLOW__CORE__LOAD_EXAMPLES=False
 export AIRFLOW__CORE__SQL_ALCHEMY_CONN=my_conn_string

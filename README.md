@@ -1,4 +1,4 @@
-# phl-airflow
+# phila-airflow
 
 Airflow Configuration for The City of Philadelphia
 
@@ -6,8 +6,8 @@ Airflow Configuration for The City of Philadelphia
 
 ```bash
 # clone the repository
-git clone https://github.com/CityOfPhiladelphia/phl-airflow.git
-cd phl-airflow
+git clone https://github.com/CityOfPhiladelphia/phila-airflow.git
+cd phila-airflow
 
 # airflow needs a home, ~/airflow is the default,
 # but you can lay foundation somewhere else if you prefer
@@ -41,7 +41,7 @@ Use the output of that command as the `fernet_key` value.
 
 ### Creating your transformation script
 
-Portions of a DAG can exist in code outside of the phl-airflow repository. For
+Portions of a DAG can exist in code outside of the phila-airflow repository. For
 example, you may want to create transformation scripts that can be plugged in
 to Airflow that get installed when the server is deployed. Creating these as
 separate scripts can make them easier to test.
