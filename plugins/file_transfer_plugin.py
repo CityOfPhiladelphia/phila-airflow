@@ -23,6 +23,13 @@ from shutil import copyfile, copytree, rmtree
 from tempfile import mkstemp, NamedTemporaryFile
 
 
+try:
+    FileExistsError
+except NameError:
+    class FileExistsError (Exception):
+        pass
+
+
 def makedirs(path, exist_ok=False):
     """
     Compatibility function to emulate Python 3.2+'s `exist_ok` argument.
@@ -35,9 +42,6 @@ def makedirs(path, exist_ok=False):
     except FileExistsError:
         if not (exist_ok and isdir(path)):
             raise
-
-class FileExistsError (Exception):
-    pass
 
 
 class CommonFileHook (BaseHook):
