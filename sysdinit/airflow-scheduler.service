@@ -3,8 +3,6 @@ StopWhenUnneeded=true
 
 [Service]
 User=airflow
-Environment=AIRFLOW_HOME=...
-Environment=SENTRY_DSN=...
 ExecStart=/bin/bash -lc 'airflow scheduler'
 Restart=always
 StandardInput=null
