@@ -2,7 +2,7 @@
 StopWhenUnneeded=true
 
 [Service]
-User=airflow
+User=admin
 ExecStart=/bin/bash -lc 'airflow worker'
 Restart=always
 StandardInput=null
