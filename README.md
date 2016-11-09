@@ -63,6 +63,15 @@ The taxi trips workflow uses `rtree`, which depends on system packages that do n
 brew install spatialindex
 ```
 
+#### cryptography
+```
+Command "/.../cryptography" failed with error code 1 in /.../cryptography
+```
+Make sure you're using the latest version of `pip`:
+```bash
+pip install --upgrade pip
+```
+
 ## Encryption
 
 You can store connection credentials and other sensitive information in your
