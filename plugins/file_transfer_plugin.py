@@ -28,7 +28,7 @@ def makedirs(path, exist_ok=False):
     Compatibility function to emulate Python 3.2+'s `exist_ok` argument.
     """
     try:
-        os.makedirs(os.path.dirname(localpath))
+        os.makedirs(os.path.dirname(path))
     except OSError as e:
         if exist_ok and e.errno == errno.EEXIST and isdir(path):
             pass
