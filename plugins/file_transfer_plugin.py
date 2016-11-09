@@ -1,3 +1,4 @@
+import errno
 import logging
 import pysftp
 import os
@@ -21,6 +22,18 @@ from os.path import isdir
 from shutil import copyfile, copytree, rmtree
 from tempfile import mkstemp, NamedTemporaryFile
 
+
+def makedirs(path, exist_ok=False):
+    """
+    Compatibility function to emulate Python 3.2+'s `exist_ok` argument.
+    """
+    try:
+        os.makedirs(os.path.dirname(localpath))
+    except OSError as e:
+        if exist_ok and e.errno == errno.EEXIST and isdir(path):
+            pass
+        else:
+            raise
 
 class FileExistsError (Exception):
     pass
@@ -136,14 +149,14 @@ class CommonFTPHookMixin (CommonFileHook):
     def download(self, remotepath, localpath, replace=True):
         if not replace and exists(localpath):
             raise FileExistsError(localpath)
-        os.makedirs(os.path.dirname(localpath), exist_ok=True)
+        makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_file(remotepath, localpath)
 
     def download_folder(self, remotepath, localpath, replace=True):
         if exists(localpath):
             if replace: rmtree(localpath)
             else: raise FileExistsError(localpath)
-        os.makedirs(os.path.dirname(localpath), exist_ok=True)
+        makedirs(os.path.dirname(localpath), exist_ok=True)
         self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
