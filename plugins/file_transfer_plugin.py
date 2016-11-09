@@ -30,9 +30,10 @@ def makedirs(path, exist_ok=False):
     try:
         os.makedirs(os.path.dirname(path))
     except OSError as e:
-        if exist_ok and e.errno == errno.EEXIST and isdir(path):
-            pass
-        else:
+        if not (exist_ok and e.errno == errno.EEXIST and isdir(path)):
+            raise
+    except FileExistsError:
+        if not (exist_ok and isdir(path)):
             raise
 
 class FileExistsError (Exception):
