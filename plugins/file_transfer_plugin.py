@@ -36,12 +36,14 @@ def makedirs(path, exist_ok=False):
     """
     try:
         os.makedirs(path)
+        return True
     except OSError as e:
         if not (exist_ok and e.errno == errno.EEXIST and isdir(path)):
             raise
     except FileExistsError:
         if not (exist_ok and isdir(path)):
             raise
+    return False
 
 
 class CommonFileHook (BaseHook):
@@ -156,7 +158,10 @@ class CommonFTPHookMixin (CommonFileHook):
             raise FileExistsError(localpath)
         dirname = os.path.dirname(localpath)
         logging.info('Creating the folder {}, if it does not exist'.format(dirname))
-        makedirs(dirname, exist_ok=True)
+        if makedirs(dirname, exist_ok=True):
+            logging.info('Created!')
+        else:
+            logging.info('Already existed.')
 
         self.retrieve_file(remotepath, localpath)
 
@@ -165,7 +170,10 @@ class CommonFTPHookMixin (CommonFileHook):
             if replace: rmtree(localpath)
             else: raise FileExistsError(localpath)
         logging.info('Creating the folder {}, if it does not exist'.format(localpath))
-        makedirs(os.path.dirname(localpath), exist_ok=True)
+        if makedirs(os.path.dirname(localpath), exist_ok=True):
+            logging.info('Created!')
+        else:
+            logging.info('Already existed.')
         self.retrieve_folder(remotepath, localpath)
 
     def upload(self, localpath, remotepath, replace=True):
