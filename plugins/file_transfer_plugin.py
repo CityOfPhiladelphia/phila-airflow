@@ -170,7 +170,7 @@ class CommonFTPHookMixin (CommonFileHook):
             if replace: rmtree(localpath)
             else: raise FileExistsError(localpath)
         logging.info('Creating the folder {}, if it does not exist'.format(localpath))
-        if makedirs(os.path.dirname(localpath), exist_ok=True):
+        if makedirs(localpath, exist_ok=True):
             logging.info('Created!')
         else:
             logging.info('Already existed.')
