@@ -21,7 +21,7 @@ default_args = {
     'on_failure_callback': SlackNotificationOperator.failed(),
 }
 
-pipeline = DAG('etl_taxi_trips_v3',
+pipeline = DAG('etl_taxi_trips_v4',
     start_date=datetime.now() - timedelta(days=1),
     schedule_interval='@weekly',
     default_args=default_args
@@ -67,6 +67,18 @@ download_cmt = FolderDownloadOperator(task_id='download_cmt', dag=pipeline,
     source_path='/Taxi/cmt',
 
     dest_path='{{ ti.xcom_pull("staging") }}/input/cmt',
+)
+
+unzip_cmt = BashOperator(task_id='unzip_cmt', dag=pipeline,
+    bash_command=
+        'for f in $(ls {{ ti.xcom_pull("staging") }}/input/cmt/*.zip); '
+        '  do unzip $f; done'
+)
+
+unzip_verifone = BashOperator(task_id='unzip_verifone', dag=pipeline,
+    bash_command=
+        'for f in $(ls {{ ti.xcom_pull("staging") }}/input/verifone/*.zip); '
+        '  do unzip $f; done'
 )
 
 # Transform & Load
@@ -119,8 +131,8 @@ cleanup_staging = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
 # ============================================================
 # Configure the pipeline's dag
 
-make_staging  >>    wait_for_cmt     >>    download_cmt     >>  merge_and_norm
-make_staging  >>  wait_for_verifone  >>  download_verifone  >>  merge_and_norm
+make_staging  >>    wait_for_cmt     >>    download_cmt     >>    unzip_cmt     >>  merge_and_norm
+make_staging  >>  wait_for_verifone  >>  download_verifone  >>  unzip_verifone  >>  merge_and_norm
 
 merge_and_norm  >>  load_raw  >>  anonymize
 merge_and_norm  >>   fuzzy    >>  anonymize
