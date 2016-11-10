@@ -1,6 +1,8 @@
 #!/bin/bash
 # run to install airflowphl and all its dependencies
 
+set -ex
+
 apt-get update
 
 # install phila-airflow dependencies
@@ -29,10 +31,6 @@ wget https://www.dropbox.com/s/uic5vzc9yobttct/oracle-instantclient12.1-devel-12
 mv oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm?dl=0 oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 alien -i oracle-instantclient12.1-devel-12.1.0.2.0-1.x86_64.rpm
 
-# set oracle environment variables
-export LD_LIBRARY_PATH /usr/lib/oracle/12.1/client64/lib/${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
-export ORACLE_HOME /usr/lib/oracle/12.1/client64
-
 # geospatial dependencies
 apt-get install -y libgdal-dev libgeos-dev binutils libproj-dev gdal-bin
 apt-get install -y libspatialindex-dev
@@ -41,8 +39,6 @@ apt-get install -y libspatialindex-dev
 pip3 install -r ./requirements.txt
 
 echo 'FINISHED'
-
-
 
 
 
