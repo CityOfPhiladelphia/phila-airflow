@@ -72,13 +72,19 @@ download_cmt = FolderDownloadOperator(task_id='download_cmt', dag=pipeline,
 unzip_cmt = BashOperator(task_id='unzip_cmt', dag=pipeline,
     bash_command=
         'for f in $(ls {{ ti.xcom_pull("staging") }}/input/cmt/*.zip); '
-        '  do unzip $f; done'
+        '  do unzip $f -d {{ ti.xcom_pull("staging") }}/input/cmt/; done'
 )
 
 unzip_verifone = BashOperator(task_id='unzip_verifone', dag=pipeline,
     bash_command=
         'for f in $(ls {{ ti.xcom_pull("staging") }}/input/verifone/*.zip); '
-        '  do unzip $f; done'
+        '  do unzip $f -d {{ ti.xcom_pull("staging") }}/input/verifone/; done'       
+)
+
+download_hexbins = BashOperator(task_id='download_hexbins', dag=pipeline,
+    bash_command=
+        'wget https://github.com/CityOfPhiladelphia/trip-data-pipeline/raw/master/geo/hexagons_20160919.geojson'
+        ' -O {{ ti.xcom_pull("staging") }}/input/hexbins.geojson'
 )
 
 # Transform & Load
@@ -91,7 +97,7 @@ unzip_verifone = BashOperator(task_id='unzip_verifone', dag=pipeline,
 
 merge_and_norm = BashOperator(task_id='merge_and_norm', dag=pipeline,
     bash_command=
-        'taxitrips.py transform '
+        'taxitrips.py normalize'
         '  --verifone "{{ ti.xcom_pull("staging") }}/input/verifone/*.csv"'
         '  --cmt "{{ ti.xcom_pull("staging") }}/input/cmt/*.csv" > '
         '{{ ti.xcom_pull("staging") }}/merged_trips.csv',
@@ -105,7 +111,8 @@ load_raw = DatumLoadOperator(task_id='load_raw', dag=pipeline,
 
 fuzzy = BashOperator(task_id='fuzzy_time_and_loc', dag=pipeline,
     bash_command=
-        'taxitrips.py transform '
+        'taxitrips.py fuzzy'
+        ' --regions {{ ti.xcom_pull("staging") }}/input/hexbins.geojson'
         '  {{ ti.xcom_pull("staging") }}/merged_trips.csv > '
         '{{ ti.xcom_pull("staging") }}/fuzzied_trips.csv',
 )
@@ -135,6 +142,6 @@ make_staging  >>    wait_for_cmt     >>    download_cmt     >>    unzip_cmt     
 make_staging  >>  wait_for_verifone  >>  download_verifone  >>  unzip_verifone  >>  merge_and_norm
 
 merge_and_norm  >>  load_raw  >>  anonymize
-merge_and_norm  >>   fuzzy    >>  anonymize
+merge_and_norm  >>  download_hexbins  >>    fuzzy    >>  anonymize
 
 anonymize  >>  load_public  >>  cleanup_staging
