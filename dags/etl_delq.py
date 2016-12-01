@@ -39,7 +39,7 @@ extract_delq = FileDownloadOperator(
 
     source_type='sftp',
     source_conn_id='phl-ftp-etl',
-    source_path='/Test_Tax_Delinquents/sample.txt',
+    source_path='/Revenue_RealEstate_Tax/sample.txt',
 
     dest_path='{{ ti.xcom_pull("staging") }}/sample.txt'
 )
