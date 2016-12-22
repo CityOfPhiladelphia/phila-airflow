@@ -50,15 +50,19 @@ extract_data = FolderDownloadOperator(
         dest_path='{{ ti.xcom_pull("staging") }}'
 )
 
+
 # upload file
 upload_to_archive  = BashOperator(
         task_id='copy_data',
         dag=pipeline,
 
-        bash_command='gdrive upload -p open_data_backups {{ ti.xcom_pull("staging") }}/*'
+        bash_command='gdrive upload --parent $GDRIVE {{ ti.xcom_pull("staging") }}/*'
 
 )
 
+cleanup_staging = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
+        dir='{{ ti.xcom_pull("staging") }}',
+)
 
-mk_staging >> detect_file >> extract_data >> upload_to_archive
+mk_staging >> detect_file >> extract_data >> upload_to_archive >> cleanup_staging
 

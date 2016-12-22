@@ -28,37 +28,73 @@ pipeline = DAG('etl_backup_taxi',
 # make staging
 mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 
-# detect new file in directory
-detect_file = FileAvailabilitySensor(task_id='detect_file',dag=pipeline,
+# wait for cmt
+wait_for_cmt = FileAvailabilitySensor(task_id='wait_for_cmt',dag=pipeline,
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/Revenue_RealEstate_Tax/*',
+        source_path='/Taxi/cmt/*',
 
         poke_interval=60*5, # 5 minutes,
         timeout=60*60*24*7
 )
 
-# extract file to be copied to staging
-extract_data = FolderDownloadOperator(
-        task_id='extract_data',
+# wait for verifone
+wait_for_verifone = FileAvailabilitySensor(task_id='wait_for_verifone',dag=pipeline,
+        source_type='sftp',
+        source_conn_id='phl-ftp-etl',
+        source_path='/Taxi/verifone/*',
+
+        poke_interval=60*5, # 5 minutes,
+        timeout=60*60*24*7
+)
+
+# download cmt data
+extract_cmt = FolderDownloadOperator(
+        task_id='download_cmt',
         dag=pipeline,
 
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/Revenue_RealEstate_Tax/',
+        source_path='/Taxi/cmt/',
 
-        dest_path='{{ ti.xcom_pull("staging") }}'
+        dest_path='{{ ti.xcom_pull("staging") }}/input/cmt',
 )
 
-# upload file
-upload_to_archive  = BashOperator(
-        task_id='copy_data',
+# download verifone data
+extract_verifone = FolderDownloadOperator(
+        task_id='download_verifone',
         dag=pipeline,
 
-        bash_command='gdrive upload {{ ti.xcom_pull("staging") }}/*'
+        source_type='sftp',
+        source_conn_id='phl-ftp-etl',
+        source_path='/Taxi/verifone/',
+
+        dest_path='{{ ti.xcom_pull("staging") }}/input/verfone',
+)
+
+# upload cmt
+upload_cmt = BashOperator(
+        task_id='upload_cmt',
+        dag=pipeline,
+
+        bash_command='gdrive upload {{ ti.xcom_pull("staging") }}/input/cmt/*'
 
 )
 
+# upload verifone
+upload_verifone = BashOperator(
+    task_id='upload_verifone',
+    dag=pipeline,
 
-mk_staging >> detect_file >> extract_data >> upload_to_archive
+    bash_command='gdrive upload {{ ti.xcom_pull("staging") }}/input/verifone/*'
+)
+
+# delete staging folder
+cleanup_staging = DestroyStagingFolder(task_id='cleanup_staging', dag=pipeline,
+    dir='{{ ti.xcom_pull("staging") }}',
+)
+
+
+mk_staging >> wait_for_cmt >> extract_cmt >> upload_cmt
+mk_staging >> wait_for_verifone >> extract_verifone >> upload_verifone >> cleanup_staging
 
