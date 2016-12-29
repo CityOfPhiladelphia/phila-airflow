@@ -21,7 +21,7 @@ default_args = {
 
 pipeline = DAG('etl_backup_tax_delq',
     start_date=datetime.now() - timedelta(days=1),
-    schedule_interval='@monthly',
+    schedule_interval='@weekly',
     default_args=default_args
 )
 
@@ -32,10 +32,10 @@ mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 detect_file = FileAvailabilitySensor(task_id='detect_file',dag=pipeline,
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/FakeStore/*',
+        source_path='/Revenue_RealEstate_Tax/*',
 
-        poke_interval=60*5, # 5 minutes,
-        timeout=60*60*24*7
+        poke_interval=60*60*12, #12 hours,
+        timeout=60*60*24*7 #1 week
 )
 
 # extract file to be copied to staging
@@ -45,7 +45,7 @@ extract_data = FolderDownloadOperator(
 
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/FakeStore/',
+        source_path='/Revenue_RealEstate_Tax/',
 
         dest_path='{{ ti.xcom_pull("staging") }}'
 )
