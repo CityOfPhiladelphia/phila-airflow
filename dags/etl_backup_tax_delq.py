@@ -32,7 +32,7 @@ mk_staging = CreateStagingFolder(task_id='staging', dag=pipeline)
 detect_file = FileAvailabilitySensor(task_id='detect_file',dag=pipeline,
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/Revenue_RealEstate_Tax/*',
+        source_path='/FakeStore/*',
 
         poke_interval=60*5, # 5 minutes,
         timeout=60*60*24*7
@@ -45,7 +45,7 @@ extract_data = FolderDownloadOperator(
 
         source_type='sftp',
         source_conn_id='phl-ftp-etl',
-        source_path='/Revenue_RealEstate_Tax/',
+        source_path='/FakeStore/',
 
         dest_path='{{ ti.xcom_pull("staging") }}'
 )
@@ -53,10 +53,10 @@ extract_data = FolderDownloadOperator(
 
 # upload file
 upload_to_archive  = BashOperator(
-        task_id='copy_data',
+        task_id='upload',
         dag=pipeline,
 
-        bash_command='gdrive upload --parent $GDRIVE {{ ti.xcom_pull("staging") }}/*'
+        bash_command='gdrive upload --parent $REV {{ ti.xcom_pull("staging") }}/*'
 
 )
 
