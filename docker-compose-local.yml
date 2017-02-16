@@ -1,0 +1,37 @@
+version: '2'
+services:
+    postgres:
+        image: postgres:9.6
+        environment:
+            - POSTGRES_USER=airflow
+            - POSTGRES_PASSWORD=airflow
+            - POSTGRES_DB=airflow
+
+    webserver:
+        build: .
+        restart: always
+        depends_on:
+            - postgres
+        environment:
+            # - LOAD_EX=n
+            - EXECUTOR=Local
+            - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+        # volumes:
+        #     - /localpath/to/dags:/usr/local/airflow/dags
+        ports:
+            - "8080:8080"
+        command: webserver
+
+    scheduler:
+        build: .
+        restart: always
+        depends_on:
+            - webserver
+        # volumes:
+            # - ./requirements.txt:/requirements.txt:ro
+            # - /localpath/to/dags:/usr/local/airflow/dags
+        environment:
+            # - LOAD_EX=n
+            - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+            - EXECUTOR=Local
+        command: scheduler -n 5
