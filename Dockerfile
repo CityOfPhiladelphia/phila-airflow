@@ -57,7 +57,8 @@ RUN set -ex \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
-    && pip install airflow[crypto,postgres,hive]==$AIRFLOW_VERSION \
+    && pip install click \
+    && pip install airflow[crypto,password,postgres,hive]==$AIRFLOW_VERSION \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
@@ -93,12 +94,13 @@ COPY scripts/entrypoint.sh /entrypoint.sh
 COPY requirements.txt /requirements.txt
 
 COPY config/airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
+COPY scripts/users.py ${AIRFLOW_HOME}/users.py
 COPY dags ${AIRFLOW_HOME}/dags
 COPY plugins ${AIRFLOW_HOME}/plugins
 
 RUN chown -R airflow: ${AIRFLOW_HOME}
 
-EXPOSE 8080 5555 8793
+EXPOSE 8080
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}
