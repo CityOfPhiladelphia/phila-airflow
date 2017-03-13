@@ -5,3 +5,6 @@ airflow.db
 unittests.cfg
 *.rpm
 logs/
+
+._*
+.DS_Store

@@ -1,29 +1,37 @@
 #!/usr/bin/env bash
 
+# alias python=python3
+# alias pip=pip3
+
 AIRFLOW_HOME="/usr/local/airflow"
 CMD="airflow"
-TRY_LOOP="10"
-POSTGRES_HOST="postgres"
-POSTGRES_PORT="5432"
-REDIS_HOST="redis"
-REDIS_PORT="6379"
 : ${FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print FERNET_KEY")}
 
-# Load DAGs exemples (default: Yes)
-if [ "x$LOAD_EX" = "xn" ]; then
-    sed -i "s/load_examples = True/load_examples = False/" "$AIRFLOW_HOME"/airflow.cfg
-fi
-
-# Install custome python package if requirements.txt is present
+# Install custom python package if requirements.txt is present
 if [ -e "/requirements.txt" ]; then
     $(which pip) install --user -r /requirements.txt
+fi
+
+if [ -z ${EASTERN_STATE_BUCKET+x} ]; then
+  echo "$(date) - Not using eastern_state"
+else
+  echo "$(date) - Installing environment variables using eastern_state"
+  $(which pip) install --user git+https://github.com/CityOfPhiladelphia/eastern-state.git
+  eastern_state download "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" | \
+  eastern_state decrypt | \
+  eastern_state exports "$EASTERN_STATE_ENV" | \
+  bash
 fi
 
 # Generate Fernet key
 sed -i "s|\$FERNET_KEY|$FERNET_KEY|" "$AIRFLOW_HOME"/airflow.cfg
 
 # wait for DB
-if [ "$1" = "webserver" ] || [ "$1" = "worker" ] || [ "$1" = "scheduler" ] ; then
+if [ "$SKIP_DB_CHECK" = "true" ] && [ "$1" = "webserver" ] || [ "$1" = "scheduler" ]; then
+  TRY_LOOP="10"
+  POSTGRES_HOST="postgres"
+  POSTGRES_PORT="5432"
+
   i=0
   while ! nc -z $POSTGRES_HOST $POSTGRES_PORT >/dev/null 2>&1 < /dev/null; do
     i=$((i+1))
@@ -41,23 +49,7 @@ if [ "$1" = "webserver" ] || [ "$1" = "worker" ] || [ "$1" = "scheduler" ] ; the
   sleep 5
 fi
 
-# If we use docker-compose, we use Celery.
-if [ "x$EXECUTOR" = "xCelery" ]
-then
-  if [ "$1" = "webserver" ] || [ "$1" = "worker" ] || [ "$1" = "scheduler" ] || [ "$1" = "flower" ] ; then
-    j=0
-    while ! nc -z $REDIS_HOST $REDIS_PORT >/dev/null 2>&1 < /dev/null; do
-      j=$((j+1))
-      if [ $j -ge $TRY_LOOP ]; then
-        echo "$(date) - $REDIS_HOST still not reachable, giving up"
-        exit 1
-      fi
-      echo "$(date) - waiting for Redis... $j/$TRY_LOOP"
-      sleep 5
-    done
-  fi
-  exec $CMD "$@"
-elif [ "x$EXECUTOR" = "xLocal" ]
+if [ "x$EXECUTOR" = "xLocal" ]
 then
   sed -i "s/executor = CeleryExecutor/executor = LocalExecutor/" "$AIRFLOW_HOME"/airflow.cfg
   exec $CMD "$@"

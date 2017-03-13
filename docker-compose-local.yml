@@ -15,22 +15,25 @@ services:
         environment:
             - EXECUTOR=Local
             - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+            - EASTERN_STATE_BUCKET=eastern-state
+            - EASTERN_STATE_NAME=airflow
+            - EASTERN_STATE_ENV=prod
         # volumes:
         #     - /localpath/to/dags:/usr/local/airflow/dags
         ports:
             - "8888:8080"
         command: webserver
 
-    scheduler:
-        build: .
-        restart: always
-        depends_on:
-            - postgres
-            - webserver
-        # volumes:
-            # - ./requirements.txt:/requirements.txt:ro
-            # - /localpath/to/dags:/usr/local/airflow/dags
-        environment:
-            - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
-            - EXECUTOR=Local
-        command: scheduler -n 5
+    # scheduler:
+    #     build: .
+    #     restart: always
+    #     depends_on:
+    #         - postgres
+    #         - webserver
+    #     # volumes:
+    #         # - ./requirements.txt:/requirements.txt:ro
+    #         # - /localpath/to/dags:/usr/local/airflow/dags
+    #     environment:
+    #         - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+    #         - EXECUTOR=Local
+    #     command: scheduler -n 5
