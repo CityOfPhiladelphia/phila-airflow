@@ -15,6 +15,9 @@ services:
         environment:
             - EXECUTOR=Local
             - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+            - AWS_ACCESS_KEY_ID=AKIAJ5C5AYZ25AGN5UEQ
+            - AWS_SECRET_ACCESS_KEY=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
+            - AWS_DEFAULT_REGION=us-east-1
             - EASTERN_STATE_BUCKET=eastern-state
             - EASTERN_STATE_NAME=airflow
             - EASTERN_STATE_ENV=prod

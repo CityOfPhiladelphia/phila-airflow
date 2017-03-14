@@ -59,6 +59,7 @@ RUN set -ex \
     && pip install pyasn1 \
     && pip install click \
     && pip install airflow[crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
+    && pip install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \

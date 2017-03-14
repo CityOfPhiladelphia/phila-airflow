@@ -16,7 +16,6 @@ if [ -z ${EASTERN_STATE_BUCKET+x} ]; then
   echo "$(date) - Not using eastern_state"
 else
   echo "$(date) - Installing environment variables using eastern_state"
-  $(which pip) install --user git+https://github.com/CityOfPhiladelphia/eastern-state.git
   eastern_state download "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" | \
   eastern_state decrypt | \
   eastern_state exports "$EASTERN_STATE_ENV" | \
