@@ -18,7 +18,7 @@ ENV LC_ALL  en_US.UTF-8
 
 RUN set -ex \
     && buildDeps=' \
-        python-dev \
+        python3-dev \
         libkrb5-dev \
         libsasl2-dev \
         libssl-dev \
@@ -31,7 +31,8 @@ RUN set -ex \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
         $buildDeps \
-        python-pip \
+        python3 \
+        python3-pip \
         apt-utils \
         curl \
         netcat \
@@ -50,16 +51,16 @@ RUN set -ex \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
-    && python -m pip install -U pip \
-    && pip install -U setuptools \
-    && pip install Cython \
-    && pip install pytz==2015.7 \
-    && pip install pyOpenSSL \
-    && pip install ndg-httpsclient \
-    && pip install pyasn1 \
-    && pip install click \
-    && pip install airflow[crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
-    && pip install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
+    && python3 -m pip install -U pip \
+    && pip3 install -U setuptools \
+    && pip3 install Cython \
+    && pip3 install pytz==2015.7 \
+    && pip3 install pyOpenSSL \
+    && pip3 install ndg-httpsclient \
+    && pip3 install pyasn1 \
+    && pip3 install click \
+    && pip3 install airflow[crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
+    && pip3 install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \

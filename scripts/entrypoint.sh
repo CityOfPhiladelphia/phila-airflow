@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# alias python=python3
-# alias pip=pip3
+alias python=python3
+alias pip=pip3
 
 AIRFLOW_HOME="/usr/local/airflow"
 CMD="airflow"
@@ -16,10 +16,9 @@ if [ -z ${EASTERN_STATE_BUCKET+x} ]; then
   echo "$(date) - Not using eastern_state"
 else
   echo "$(date) - Installing environment variables using eastern_state"
-  eastern_state download "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" | \
-  eastern_state decrypt | \
-  eastern_state exports "$EASTERN_STATE_ENV" | \
-  bash
+  source <(eastern_state download "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" | \
+           eastern_state decrypt | \
+           eastern_state exports "$EASTERN_STATE_ENV")
 fi
 
 # Generate Fernet key
