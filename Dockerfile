@@ -26,6 +26,7 @@ RUN set -ex \
         build-essential \
         libblas-dev \
         liblapack-dev \
+        libpq-dev \
     ' \
     && apt-get update -yqq \
     && apt-get install -yqq --no-install-recommends \
@@ -38,7 +39,6 @@ RUN set -ex \
         git \
         wget \
         alien \
-        libpq-dev \
         libgdal-dev \
         libgeos-dev \
         binutils \
