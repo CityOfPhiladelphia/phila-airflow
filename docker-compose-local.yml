@@ -13,8 +13,7 @@ services:
         depends_on:
             - postgres
         environment:
-            - EXECUTOR=Local
-            - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+            - AIRFLOW__CORE__FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
         # volumes:
         #     - /localpath/to/dags:/usr/local/airflow/dags
         ports:
@@ -31,6 +30,5 @@ services:
             # - ./requirements.txt:/requirements.txt:ro
             # - /localpath/to/dags:/usr/local/airflow/dags
         environment:
-            - FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
-            - EXECUTOR=Local
+            - AIRFLOW__CORE__FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
         command: scheduler -n 5
