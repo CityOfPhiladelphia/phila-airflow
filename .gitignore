@@ -1,5 +1,6 @@
 *.pyc
 env/
+.env
 
 airflow.db
 unittests.cfg
@@ -8,3 +9,5 @@ logs/
 
 ._*
 .DS_Store
+
+config-local.yml

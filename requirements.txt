@@ -1,5 +1,4 @@
 psycopg2>=2.6
-raven==5.31.0
 
 # Transformation scripts
 #git+https://github.com/CityOfPhiladelphia/property-assessments-data-pipeline.git#egg=phl-property==1.0.0
@@ -20,3 +19,5 @@ slackclient==1.0.2
 # Better SFTP support
 
 pysftp==0.2.9
+
+#git+https://github.com/CityOfPhiladelphia/s3-sftp-sync.git

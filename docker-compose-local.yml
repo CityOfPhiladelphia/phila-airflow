@@ -14,8 +14,15 @@ services:
             - postgres
         environment:
             - AIRFLOW__CORE__FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
-        # volumes:
-        #     - /localpath/to/dags:/usr/local/airflow/dags
+            - AWS_DEFAULT_REGION=us-east-1
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            - EASTERN_STATE_BUCKET=eastern-state
+            - EASTERN_STATE_NAME=airflow
+            - EASTERN_STATE_ENV=dev
+        volumes:
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
         ports:
             - "8888:8080"
         command: webserver
@@ -26,9 +33,16 @@ services:
         depends_on:
             - postgres
             - webserver
-        # volumes:
-            # - ./requirements.txt:/requirements.txt:ro
-            # - /localpath/to/dags:/usr/local/airflow/dags
+        volumes:
+            - ./requirements.txt:/requirements.txt:ro
+            - ./dags:/usr/local/airflow/dags
+            - ./plugins:/usr/local/airflow/plugins
         environment:
             - AIRFLOW__CORE__FERNET_KEY=9IoTgQ_EJ0hCsamBU3Mctc7F9OkODnndOKCwkwXCAA
+            - EASTERN_STATE_BUCKET=eastern-state
+            - EASTERN_STATE_NAME=airflow
+            - EASTERN_STATE_ENV=dev
+            - AWS_DEFAULT_REGION=us-east-1
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
         command: scheduler -n 5

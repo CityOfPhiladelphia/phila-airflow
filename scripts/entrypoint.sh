@@ -14,11 +14,11 @@ fi
 if [ -z ${EASTERN_STATE_BUCKET+x} ]; then
   echo "$(date) - Not using eastern_state"
 else
-  echo "$(date) - Installing environment variables using eastern_state"
-  source <(eastern_state download "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" | \
-           eastern_state decrypt | \
-           eastern_state exports "$EASTERN_STATE_ENV")
+  echo "$(date) - Installing environment variables using eastern_state - $EASTERN_STATE_ENV"
+  source <(eastern_state load_environment "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" "$EASTERN_STATE_ENV")
 fi
+
+printenv
 
 if [ "$1" = "webserver" ]; then
   echo "Initialize database..."
