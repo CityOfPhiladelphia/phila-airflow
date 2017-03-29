@@ -18,8 +18,6 @@ else
   source <(eastern_state load_environment "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" "$EASTERN_STATE_ENV")
 fi
 
-printenv
-
 if [ "$1" = "webserver" ]; then
   echo "Initialize database..."
   $CMD initdb
