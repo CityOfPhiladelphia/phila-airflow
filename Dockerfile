@@ -59,6 +59,7 @@ RUN set -ex \
     && pip3 install ndg-httpsclient \
     && pip3 install pyasn1 \
     && pip3 install click \
+    && pip3 install eventlet \
     && pip3 install airflow[crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
     && pip3 install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
     && pip3 install git+https://github.com/CityOfPhiladelphia/s3-sftp-sync.git \
