@@ -24,7 +24,9 @@ class TheELOperator(BashOperator):
             output_file=None,
             *args, **kwargs):
 
-        bash_command = 'the_el {} {}'.format(el_command, table_name or new_table_name)
+        eastern_state_cmd = 'source <(eastern_state load_environment "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" "$EASTERN_STATE_ENV") &&'
+
+        bash_command = '{} the_el {} {}'.format(eastern_state_cmd, el_command, table_name or new_table_name)
 
         if table_schema_path != None:
             if el_command == 'create_table':
