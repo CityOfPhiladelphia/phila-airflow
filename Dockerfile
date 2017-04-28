@@ -65,7 +65,7 @@ RUN set -ex \
     && pip3 install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
     && pip3 install git+https://github.com/CityOfPhiladelphia/s3-sftp-sync.git \
     && pip3 install git+https://github.com/CityOfPhiladelphia/jsontableschema-sql-py.git#egg=jsontableschema_sql \
-    && pip3 install git+https://github.com/CityOfPhiladelphia/the-el.git#egg=the_el \
+    && pip3 install git+https://github.com/CityOfPhiladelphia/the-el.git@carto#egg=the_el \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \

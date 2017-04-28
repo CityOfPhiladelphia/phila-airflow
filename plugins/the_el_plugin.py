@@ -13,6 +13,8 @@ class TheELOperator(BashOperator):
             self,
             el_command=None,
             table_name=None,
+            new_table_name=None,
+            old_table_name=None,
             table_schema_path=None,
             connection_string=None,
             db_schema=None,
@@ -22,13 +24,16 @@ class TheELOperator(BashOperator):
             output_file=None,
             *args, **kwargs):
 
-        bash_command = 'the_el {} {}'.format(el_command, table_name)
+        bash_command = 'the_el {} {}'.format(el_command, table_name or new_table_name)
 
         if table_schema_path != None:
             if el_command == 'create_table':
                 bash_command += ' {}'.format(table_schema_path)
             else:
                 bash_command += ' --table-schema-path {}'.format(table_schema_path)
+
+        if el_command == 'swap_table':
+            bash_command += ' ' + old_table_name
 
         if connection_string != None:
             bash_command += ' --connection-string {}'.format(connection_string)
