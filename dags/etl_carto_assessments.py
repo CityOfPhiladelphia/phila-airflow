@@ -60,7 +60,7 @@ swap_assessments = TheELOperator(
     el_command='swap_table',
     db_schema='phl',
     new_table_name='assessments_{{run_id.lower()}}',
-    old_table_name='awm_assessments',
+    old_table_name='assessments',
     connection_string='"$CARTO_CONN_STRING"'
 )
 
