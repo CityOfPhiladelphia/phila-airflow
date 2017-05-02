@@ -37,7 +37,7 @@ create_temp_assessments_table = TheELOperator(
     dag=dag,
     el_command='create_table',
     db_schema='phl',
-    table_name='assessments_{{run_id}}',
+    table_name='assessments_{{run_id.lower()}}',
     table_schema_path=schema_file,
     connection_string='"$CARTO_CONN_STRING"'
 )
@@ -47,7 +47,7 @@ load_assessments = TheELOperator(
     dag=dag,
     el_command='write',
     db_schema='phl',
-    table_name='assessments_{{run_id}}',
+    table_name='assessments_{{run_id.lower()}}',
     table_schema_path=schema_file,
     connection_string='"$CARTO_CONN_STRING"',
     input_file=data_file
@@ -58,7 +58,7 @@ swap_assessments = TheELOperator(
     dag=dag,
     el_command='swap_table',
     db_schema='phl',
-    new_table_name='assessments_{{run_id}}',
+    new_table_name='assessments_{{run_id.lower()}}',
     old_table_name='awm_assessments',
     connection_string='"$CARTO_CONN_STRING"'
 )
