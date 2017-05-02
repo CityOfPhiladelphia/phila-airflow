@@ -48,6 +48,7 @@ load_assessments = TheELOperator(
     el_command='write',
     db_schema='phl',
     table_name='assessments_{{run_id.lower()}}',
+    skip_headers=True,
     table_schema_path=schema_file,
     connection_string='"$CARTO_CONN_STRING"',
     input_file=data_file

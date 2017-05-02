@@ -21,6 +21,7 @@ class TheELOperator(BashOperator):
             geometry_support=None,
             indexes_fields=None,
             input_file=None,
+            skip_headers=False,
             output_file=None,
             *args, **kwargs):
 
@@ -59,6 +60,9 @@ class TheELOperator(BashOperator):
 
         if output_file != None:
             bash_command += ' --output-file {}'.format(output_file)
+
+        if skip_headers:
+            bash_command += ' --skip-headers'
 
         kwargs['bash_command'] = bash_command
 
