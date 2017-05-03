@@ -79,5 +79,5 @@ def carto_geodb2_dag_factory(geodb2_schema,
 
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
-                         's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json',
+                         's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
                          final_carto_table_name='awm_public_cases_fc')
