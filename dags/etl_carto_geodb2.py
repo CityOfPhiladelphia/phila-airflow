@@ -80,4 +80,5 @@ carto_geodb2_dag_factory('GIS_OPA', 'assessments', 's3://"$S3_SCHEMA_BUCKET"/opa
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
                          's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
+                         geospatial=True,
                          final_carto_table_name='awm_public_cases_fc')
