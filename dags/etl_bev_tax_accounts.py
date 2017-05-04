@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 
 from airflow import DAG
-from airflow.operators import TheELOperator
+from airflow.operators import TheELOperator, BashStreamOperator
 from airflow.operators import SlackNotificationOperator
 
 default_args = {
@@ -19,45 +19,55 @@ dag = DAG('etl_bev_tax_accounts_v1',
 schema_file = 's3://"$S3_STAGING_BUCKET"/schemas/etl_bev_tax_accounts.json'
 data_file = 's3://"$S3_STAGING_BUCKET"/etl_bev_tax_accounts_v1/{{run_id}}/etl_bev_tax_accounts.csv'
 
-extract_accounts_data = TheELOperator(
-    task_id='extract_accounts_data',
+## TESTING
+transform_accounts = BashStreamOperator(
+    task_id='transform_accounts_data',
     dag=dag,
-    el_command='read',
-    table_name='VW_AccountDetails',
-    connection_string='"$BEV_TAX_MSSQL_CONN_STRING"',
-    output_file=data_file
+    bash_command='VALUE=$(cat); echo "$VALUE";',
+    # bash_command='echo "foo"',
+    input_file='s3://phl-etl-staging-dev/schemas/etl_bev_tax_accounts.json',
+    output_file='s3://phl-etl-staging-dev/etl_bev_tax_accounts_v1/test.txt'
 )
 
-create_temp_table_accounts_data = TheELOperator(
-    task_id='create_temp_table_accounts_data',
-    dag=dag,
-    el_command='create_table',
-    db_schema='phl',
-    table_name='sbt_accounts_{{run_id.lower()}}',
-    table_schema_path=schema_file,
-    connection_string='"$CARTO_CONN_STRING"'
-)
+# extract_accounts_data = TheELOperator(
+#     task_id='extract_accounts_data',
+#     dag=dag,
+#     el_command='read',
+#     table_name='VW_AccountDetails',
+#     connection_string='"$BEV_TAX_MSSQL_CONN_STRING"',
+#     output_file=data_file
+# )
 
-load_accounts_data = TheELOperator(
-    task_id='load_accounts_data',
-    dag=dag,
-    el_command='write',
-    db_schema='phl',
-    table_name='sbt_accounts_{{run_id.lower()}}',
-    skip_headers=True,
-    table_schema_path=schema_file,
-    connection_string='"$CARTO_CONN_STRING"',
-    input_file=data_file
-)
+# create_temp_table_accounts_data = TheELOperator(
+#     task_id='create_temp_table_accounts_data',
+#     dag=dag,
+#     el_command='create_table',
+#     db_schema='phl',
+#     table_name='sbt_accounts_{{run_id.lower()}}',
+#     table_schema_path=schema_file,
+#     connection_string='"$CARTO_CONN_STRING"'
+# )
 
-swap_accounts_data = TheELOperator(
-    task_id='swap_accounts_data',
-    dag=dag,
-    el_command='swap_table',
-    db_schema='phl',
-    new_table_name='sbt_accounts_{{run_id.lower()}}',
-    old_table_name='sbt_accounts',
-    connection_string='"$CARTO_CONN_STRING"'
-)
+# load_accounts_data = TheELOperator(
+#     task_id='load_accounts_data',
+#     dag=dag,
+#     el_command='write',
+#     db_schema='phl',
+#     table_name='sbt_accounts_{{run_id.lower()}}',
+#     skip_headers=True,
+#     table_schema_path=schema_file,
+#     connection_string='"$CARTO_CONN_STRING"',
+#     input_file=data_file
+# )
 
-extract_accounts_data >> create_temp_table_accounts_data >> load_accounts_data >> swap_accounts_data
+# swap_accounts_data = TheELOperator(
+#     task_id='swap_accounts_data',
+#     dag=dag,
+#     el_command='swap_table',
+#     db_schema='phl',
+#     new_table_name='sbt_accounts_{{run_id.lower()}}',
+#     old_table_name='sbt_accounts',
+#     connection_string='"$CARTO_CONN_STRING"'
+# )
+
+# extract_accounts_data >> create_temp_table_accounts_data >> load_accounts_data >> swap_accounts_data

@@ -2,15 +2,20 @@ import os
 import signal
 import logging
 import re
-from subprocess import Popen, STDOUT
+import sys
+from subprocess import Popen, PIPE
+from tempfile import gettempdir, NamedTemporaryFile
+from threading import Thread
 
 from smart_open import smart_open
 import boto
 import boto3
 
+from airflow.plugins_manager import AirflowPlugin
 from airflow.exceptions import AirflowException
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
+from airflow.utils.file import TemporaryDirectory
 
 s3_regex = r'^s3://([^/]+)/(.+)'
 
@@ -30,7 +35,17 @@ def fopen(file, mode='r'):
             file = bucket.get_key(match.groups()[1])
     return smart_open(file, mode=mode)
 
-class BashPlusOperator(BaseOperator):
+def pipe_stream(stream1, stream2):
+    def stream_helper(stream1, stream2):
+        for line in iter(stream1.readline, b''):
+            stream2.write(line)
+        stream2.close()
+
+    t = Thread(target=stream_helper, args=(stream1, stream2))
+    t.daemon = True
+    t.start()
+
+class BashStreamOperator(BaseOperator):
     """
     Execute a Bash script, command or set of commands.
 
@@ -52,9 +67,11 @@ class BashPlusOperator(BaseOperator):
             self,
             bash_command,
             env=None,
+            input_file=None,
+            output_file=None,
             *args, **kwargs):
 
-        super(BashOperator, self).__init__(input_file=None, output_file=None, *args, **kwargs)
+        super(BashStreamOperator, self).__init__(*args, **kwargs)
         self.bash_command = bash_command
         self.env = env
         self.input_file = input_file
@@ -78,31 +95,53 @@ class BashPlusOperator(BaseOperator):
                              "location :{0}".format(script_location))
                 logging.info("Running command: " + bash_command)
 
-                with fopen(self.input_file) as input_file:
-                    with fopen(self.output_file) as out: 
-                        sp = Popen(
-                            ['bash', fname],
-                            stdin=input_file,
-                            stdout=out,
-                            stderr=STDOUT,
-                            cwd=tmp_dir,
-                            env=self.env,
-                            preexec_fn=os.setsid)
+                input_file = None
+                if self.input_file:
+                    input_file = fopen(self.input_file)
 
-                        self.sp = sp
+                out = None
+                if self.output_file:
+                    out = fopen(self.output_file, mode='w')
 
-                        logging.info("Output:")
-                        line = ''
-                        for line in iter(sp.stdout.readline, b''):
-                            line = line.decode(self.output_encoding).strip()
-                            logging.info(line)
-                        sp.wait()
-                        logging.info("Command exited with "
-                                     "return code {0}".format(sp.returncode))
+                ON_POSIX = 'posix' in sys.builtin_module_names
 
-                        if sp.returncode:
-                            raise AirflowException("Bash command failed")
+                sp = Popen(
+                    ['bash', fname],
+                    stdin=PIPE if input_file else None,
+                    stdout=PIPE if out else None,
+                    stderr=PIPE,
+                    cwd=tmp_dir,
+                    env=self.env,
+                    preexec_fn=os.setsid,
+                    bufsize=1,
+                    close_fds=ON_POSIX)
+
+                self.sp = sp
+
+                if input_file:
+                    pipe_stream(input_file, sp.stdin)
+
+                if out:
+                    pipe_stream(sp.stdout, out)
+
+                for line in iter(sp.stderr.readline, b''):
+                    logging.info(line)
+
+                sp.wait()
+
+                if input_file:
+                    input_file.read_key.close(fast=True)
+
+                logging.info("Command exited with "
+                             "return code {0}".format(sp.returncode))
+
+                if sp.returncode:
+                    raise AirflowException("Bash command failed")
 
     def on_kill(self):
         logging.info('Sending SIGTERM signal to bash process group')
         os.killpg(os.getpgid(self.sp.pid), signal.SIGTERM)
+
+class DatumPlugin(AirflowPlugin):
+    name = "bash_stream_plugin"
+    operators = [BashStreamOperator]
