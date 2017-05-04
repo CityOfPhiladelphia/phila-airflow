@@ -9,6 +9,8 @@ psycopg2>=2.6
 # Requirements for custom operators
 
 cx_Oracle==5.2.1
+geomet
+geoalchemy2
 pymssql
 git+https://github.com/CityOfPhiladelphia/datum.git@cli#egg=datum[oracle_stgeom,postgis]
 slackclient==1.0.2
