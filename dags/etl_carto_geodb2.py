@@ -11,7 +11,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
                             geospatial=False,
                             geodb2_table_name=None, # defaults to same as table_name
                             final_carto_table_name=None, # overides final carto table - useful for testing like test_table
-                            schedule_interval='0 2 * * *'):
+                            schedule_interval='0 7 * * *'): # defaults to 7am UTC (2am EST)
     dag_id = 'etl_carto_geodb2_{}'.format(table_name)
 
     default_args = {
@@ -75,7 +75,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
 
     globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-#carto_geodb2_dag_factory('GIS_OPA', 'assessments', 's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json')
+carto_geodb2_dag_factory('GIS_OPA', 'assessments', 's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json')
 
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
