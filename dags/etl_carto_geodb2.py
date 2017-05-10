@@ -8,7 +8,7 @@ from airflow.operators import SlackNotificationOperator
 def carto_geodb2_dag_factory(geodb2_schema,
                             table_name,
                             schema_file,
-                            geospatial=False,
+                            geospatial_support=None,
                             geodb2_table_name=None, # defaults to same as table_name
                             final_carto_table_name=None, # overides final carto table - useful for testing like test_table
                             schedule_interval='0 7 * * *'): # defaults to 7am UTC (2am EST)
@@ -33,7 +33,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         el_command='read',
         db_schema=geodb2_schema,
         table_name=geodb2_table_name or table_name,
-        geometry_support= 'sde' if geospatial else None,
+        geometry_support= geospatial_support,
         connection_string='"$GEODB2_CONN_STRING"',
         output_file=data_file
     )
@@ -56,7 +56,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         table_name=table_name + '_{{run_id.lower()}}',
         skip_headers=True,
         table_schema_path=schema_file,
-        geometry_support= 'postgis' if geospatial else None,
+        geometry_support= 'postgis' if geospatial_support is not None else None,
         connection_string='"$CARTO_CONN_STRING"',
         input_file=data_file
     )
@@ -80,5 +80,5 @@ carto_geodb2_dag_factory('GIS_OPA', 'assessments', 's3://"$S3_SCHEMA_BUCKET"/opa
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
                          's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
-                         geospatial=True,
+                         geospatial_support='sde-char',
                          final_carto_table_name='awm_public_cases_fc')
