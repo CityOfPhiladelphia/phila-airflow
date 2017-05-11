@@ -38,6 +38,10 @@ def carto_geodb2_dag_factory(geodb2_schema,
         output_file=data_file
     )
 
+    postgis_geometry_support = None
+    if geometry_support != None:
+        postgis_geometry_support = 'postgis'
+
     create_temp_carto_table = TheELOperator(
         task_id='create_temp_table_' + table_name,
         dag=dag,
@@ -45,12 +49,9 @@ def carto_geodb2_dag_factory(geodb2_schema,
         db_schema='phl',
         table_name=table_name + '_{{run_id.lower()}}',
         table_schema_path=schema_file,
+        geometry_support= postgis_geometry_support,
         connection_string='"$CARTO_CONN_STRING"'
     )
-
-    postgis_geometry_support = None
-    if geometry_support != None:
-        postgis_geometry_support = 'postgis'
 
     load_to_temp_carto_table = TheELOperator(
         task_id='load_' + table_name,
