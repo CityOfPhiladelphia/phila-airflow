@@ -80,10 +80,27 @@ def carto_geodb2_dag_factory(geodb2_schema,
 
     globals()[dag_id] = dag # Airflow looks at the module global vars for DAG type variables
 
-carto_geodb2_dag_factory('GIS_OPA', 'assessments', 's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json')
+carto_geodb2_dag_factory('GIS_OPA',
+                         'assessments',
+                         's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json',
+                         schedule_interval='0 6 * * *')
+
+# carto_geodb2_dag_factory('GIS_ODDT',
+#                          'opa_properties_public',
+#                          's3://"$S3_SCHEMA_BUCKET"/opa_properties_public.json',
+#                          geometry_support='sde-char',
+#                          schedule_interval='0 6 * * *',
+#                          final_carto_table_name='awm_opa_properties_public')
 
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
                          's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
                          geometry_support='sde-char',
-                         final_carto_table_name='awm_public_cases_fc')
+                         schedule_interval='0 7 * * *')
+
+# carto_geodb2_dag_factory('GIS_POLICE',
+#                          'incidents_part1_part2',
+#                          's3://"$S3_SCHEMA_BUCKET"/incidents_part1_part2.json',
+#                          geometry_support='sde-char',
+#                          schedule_interval='0 7 * * *',
+#                          final_carto_table_name='awm_incidents_part1_part2')
