@@ -11,12 +11,14 @@ def carto_geodb2_dag_factory(geodb2_schema,
                             geometry_support=None,
                             geodb2_table_name=None, # defaults to same as table_name
                             final_carto_table_name=None, # overides final carto table - useful for testing like test_table
-                            schedule_interval='0 7 * * *'): # defaults to 7am UTC (2am EST)
+                            schedule_interval='0 7 * * *', # defaults to 7am UTC (2am EST)
+                            retries=0):
     dag_id = 'etl_carto_geodb2_{}'.format(table_name)
 
     default_args = {
         'owner': 'airflow',
         'on_failure_callback': SlackNotificationOperator.failed(),
+        'retries': retries
     }
 
     dag = DAG(dag_id,
@@ -83,7 +85,8 @@ def carto_geodb2_dag_factory(geodb2_schema,
 carto_geodb2_dag_factory('GIS_OPA',
                          'assessments',
                          's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json',
-                         schedule_interval='0 6 * * *')
+                         schedule_interval='0 6 * * *',
+                         retries=2)
 
 # carto_geodb2_dag_factory('GIS_ODDT',
 #                          'opa_properties_public',
@@ -96,7 +99,8 @@ carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
                          's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
                          geometry_support='sde-char',
-                         schedule_interval='0 7 * * *')
+                         schedule_interval='0 7 * * *',
+                         retries=2)
 
 # carto_geodb2_dag_factory('GIS_POLICE',
 #                          'incidents_part1_part2',
@@ -104,3 +108,38 @@ carto_geodb2_dag_factory('GIS_311',
 #                          geometry_support='sde-char',
 #                          schedule_interval='0 7 * * *',
 #                          final_carto_table_name='awm_incidents_part1_part2')
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_imm_dang',
+                         's3://"$S3_SCHEMA_BUCKET"/li_imm_dang.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_imm_dang')
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_trade_licenses',
+                         's3://"$S3_SCHEMA_BUCKET"/li_trade_licenses.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_trade_licenses')
+
+carto_geodb2_dag_factory('GIS_STREETS',
+                         'wastebaskets_big_belly',
+                         's3://"$S3_SCHEMA_BUCKET"/wastebaskets_big_belly.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_wastebaskets_big_belly')
+
+carto_geodb2_dag_factory('GIS_WATERSHEDS',
+                         'stormwater_grants',
+                         's3://"$S3_SCHEMA_BUCKET"/stormwater_grants.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_stormwater_grants')
+
+carto_geodb2_dag_factory('GIS_ODDT',
+                         'employee_salaries',
+                         's3://"$S3_SCHEMA_BUCKET"/employee_salaries.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_employee_salaries')
