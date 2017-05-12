@@ -119,7 +119,6 @@ carto_geodb2_dag_factory('GIS_LNI',
 carto_geodb2_dag_factory('GIS_LNI',
                          'li_trade_licenses',
                          's3://"$S3_SCHEMA_BUCKET"/li_trade_licenses.json',
-                         geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
                          final_carto_table_name='awm_li_trade_licenses')
 
@@ -140,6 +139,5 @@ carto_geodb2_dag_factory('GIS_WATERSHEDS',
 carto_geodb2_dag_factory('GIS_ODDT',
                          'employee_salaries',
                          's3://"$S3_SCHEMA_BUCKET"/employee_salaries.json',
-                         geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
                          final_carto_table_name='awm_employee_salaries')
