@@ -29,7 +29,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         max_active_runs=1
     )
 
-    data_file = 's3://"$S3_STAGING_BUCKET"/' + dag_id + '/{{run_id}}/' + dag_id + '.csv'
+    data_file = 's3://"$S3_STAGING_BUCKET"/' + dag_id + '/{{run_id.split(".")[0].lower()}}/' + dag_id + '.csv'
 
     extract_from_geodb2 = TheELOperator(
         task_id='extract_{}'.format(table_name),
@@ -51,7 +51,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         dag=dag,
         el_command='create_table',
         db_schema='phl',
-        table_name=table_name + '_{{run_id.lower()}}',
+        table_name=table_name + '_{{run_id.split(".")[0].lower()}}',
         table_schema_path=schema_file,
         geometry_support= postgis_geometry_support,
         connection_string='"$CARTO_CONN_STRING"'
@@ -62,7 +62,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         dag=dag,
         el_command='write',
         db_schema='phl',
-        table_name=table_name + '_{{run_id.lower()}}',
+        table_name=table_name + '_{{run_id.split(".")[0].lower()}}',
         skip_headers=True,
         table_schema_path=schema_file,
         geometry_support= postgis_geometry_support,
@@ -75,7 +75,7 @@ def carto_geodb2_dag_factory(geodb2_schema,
         dag=dag,
         el_command='swap_table',
         db_schema='phl',
-        new_table_name=table_name + '_{{run_id.lower()}}',
+        new_table_name=table_name + '_{{run_id.split(".")[0].lower()}}',
         old_table_name=final_carto_table_name or table_name,
         connection_string='"$CARTO_CONN_STRING"'
     )
