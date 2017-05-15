@@ -24,7 +24,9 @@ def carto_geodb2_dag_factory(geodb2_schema,
     dag = DAG(dag_id,
         start_date=datetime.now() - timedelta(days=1),
         schedule_interval=schedule_interval,
-        default_args=default_args
+        default_args=default_args,
+        concurrency=1,
+        max_active_runs=1
     )
 
     data_file = 's3://"$S3_STAGING_BUCKET"/' + dag_id + '/{{run_id}}/' + dag_id + '.csv'
