@@ -86,7 +86,8 @@ carto_geodb2_dag_factory('GIS_OPA',
                          'assessments',
                          's3://"$S3_SCHEMA_BUCKET"/opa_assessments.json',
                          schedule_interval='0 6 * * *',
-                         retries=2)
+                         #retries=2
+                         )
 
 # carto_geodb2_dag_factory('GIS_ODDT',
 #                          'opa_properties_public',
@@ -100,7 +101,8 @@ carto_geodb2_dag_factory('GIS_311',
                          's3://"$S3_SCHEMA_BUCKET"/public_cases_fc.json',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
-                         retries=2)
+                         #retries=2
+                         )
 
 # carto_geodb2_dag_factory('GIS_POLICE',
 #                          'incidents_part1_part2',
