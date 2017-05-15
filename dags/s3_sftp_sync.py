@@ -15,6 +15,8 @@ default_args = {
 dag = DAG('s3_sftp_sync',
     start_date=datetime.now() - timedelta(days=1),
     schedule_interval='@hourly',
+    concurrency=1,
+    max_active_runs=1,
     default_args=default_args
 )
 
