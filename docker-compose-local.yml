@@ -20,6 +20,11 @@ services:
             - EASTERN_STATE_BUCKET=eastern-state
             - EASTERN_STATE_NAME=airflow
             - EASTERN_STATE_ENV=dev
+            - S3_STAGING_BUCKET=phl-etl-staging-dev
+            - S3_SCHEMA_BUCKET=phl-schemas
+            - BEV_TAX_MSSQL_CONN_STRING=${BEV_TAX_MSSQL_CONN_STRING}
+            - CARTO_CONN_STRING=${CARTO_CONN_STRING}
+            - GEODB2_CONN_STRING=${GEODB2_CONN_STRING}
         volumes:
             - ./dags:/usr/local/airflow/dags
             - ./plugins:/usr/local/airflow/plugins
@@ -45,4 +50,9 @@ services:
             - AWS_DEFAULT_REGION=us-east-1
             - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
             - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+            - S3_STAGING_BUCKET=phl-etl-staging-dev
+            - S3_SCHEMA_BUCKET=phl-schemas
+            - BEV_TAX_MSSQL_CONN_STRING=${BEV_TAX_MSSQL_CONN_STRING}
+            - CARTO_CONN_STRING=${CARTO_CONN_STRING}
+            - GEODB2_CONN_STRING=${GEODB2_CONN_STRING}
         command: scheduler -n 5

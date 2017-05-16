@@ -33,6 +33,7 @@ RUN set -ex \
         $buildDeps \
         python3 \
         python3-pip \
+        netbase \
         apt-utils \
         curl \
         netcat \
@@ -47,6 +48,7 @@ RUN set -ex \
         gdal-bin \
         libspatialindex-dev \
         libaio1 \
+        freetds-dev \
     && sed -i 's/^# en_US.UTF-8 UTF-8$/en_US.UTF-8 UTF-8/g' /etc/locale.gen \
     && locale-gen \
     && update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 \
@@ -59,10 +61,11 @@ RUN set -ex \
     && pip3 install ndg-httpsclient \
     && pip3 install pyasn1 \
     && pip3 install click \
-    && pip3 install eventlet \
-    && pip3 install airflow[crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
+    && pip3 install airflow[async,crypto,password,postgres,hive,s3]==$AIRFLOW_VERSION \
     && pip3 install git+https://github.com/CityOfPhiladelphia/eastern-state.git \
     && pip3 install git+https://github.com/CityOfPhiladelphia/s3-sftp-sync.git \
+    && pip3 install git+https://github.com/CityOfPhiladelphia/jsontableschema-sql-py.git#egg=jsontableschema_sql \
+    && pip3 install git+https://github.com/CityOfPhiladelphia/the-el.git@carto#egg=the_el \
     && apt-get remove --purge -yqq $buildDeps \
     && apt-get clean \
     && rm -rf \
