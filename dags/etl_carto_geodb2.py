@@ -25,7 +25,6 @@ def carto_geodb2_dag_factory(geodb2_schema,
         start_date=datetime.now() - timedelta(days=1),
         schedule_interval=schedule_interval,
         default_args=default_args,
-        concurrency=1,
         max_active_runs=1
     )
 
