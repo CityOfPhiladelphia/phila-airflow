@@ -2,10 +2,11 @@ import logging
 
 import boto3
 
-from airflow.plugins_manager import AirflowPlugin
-
 from airflow import configuration
 from airflow.executors.base_executor import BaseExecutor
+from airflow.models import 
+from airflow.plugins_manager import AirflowPlugin
+from airflow.utils.db import provide_session
 
 class AWSBatchExecutor(BaseExecutor):
     """
@@ -18,21 +19,24 @@ class AWSBatchExecutor(BaseExecutor):
         # self.batch_client = boto3.client('batch')
         # self.default_job_queue = configuration.get('aws_batch', 'DEFAULT_JOB_QUEUE')
         # self.default_job_definition = configuration.get('aws_batch', 'DEFAULT_JOB_DEFINITION')
-        print(self)
+        print('AWSBatchPlugin - start')
 
     def sync(self):
         #self.batch_client.list_jobs(jobQueue='string')
         ##          - paginate
         ##          - find queue names from self.running
         ##          - set self.change_state() for each task
-        print(self)
+        print('AWSBatchPlugin - sync')
 
     def execute_async(self, key, command, queue=None):
         #command, priority, queue, task_instance = self.queued_tasks[key] ## TODO: !!! popped?
 
-        print(task_instance)
-
-        ## TODO: ignore priority? - maybe do queue + priority named queues?
+        print('AWSBatchPlugin - execute_async')
+        print(self.running)
+        print(key)
+        print(self.running[key])
+        print(command)
+        print(queue)
 
         # if 'job_definition' in task_instance.task.params:
         #     job_definition = task_instance.task.params
@@ -65,8 +69,12 @@ class AWSBatchExecutor(BaseExecutor):
         #         ]
         #     })
 
+    def end(self):
+        print('AWSBatchPlugin - end')
+
+    def terminate(self):
+        print('AWSBatchPlugin - terminate')
+
 class AWSBatchPlugin(AirflowPlugin):
     name = "aws_batch_plugin"
     executors = [AWSBatchExecutor]
-
-print('testingggggggggg')
