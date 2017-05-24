@@ -122,8 +122,8 @@ carto_geodb2_dag_factory('GIS_LNI',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
                          final_carto_table_name='awm_li_imm_dang',
-                         to_srid=2272,
-                         from_srid=4326)
+                         from_srid=2272,
+                         to_srid=4326)
 
 carto_geodb2_dag_factory('GIS_LNI',
                          'li_trade_licenses',
@@ -137,8 +137,8 @@ carto_geodb2_dag_factory('GIS_STREETS',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
                          final_carto_table_name='awm_wastebaskets_big_belly',
-                         to_srid=2272,
-                         from_srid=4326)
+                         from_srid=2272,
+                         to_srid=4326)
 
 carto_geodb2_dag_factory('GIS_WATERSHEDS',
                          'stormwater_grants',
@@ -146,8 +146,8 @@ carto_geodb2_dag_factory('GIS_WATERSHEDS',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
                          final_carto_table_name='awm_stormwater_grants',
-                         to_srid=2272,
-                         from_srid=4326)
+                         from_srid=2272,
+                         to_srid=4326)
 
 carto_geodb2_dag_factory('GIS_ODDT',
                          'employee_salaries',
