@@ -12,7 +12,9 @@ def carto_geodb2_dag_factory(geodb2_schema,
                             geodb2_table_name=None, # defaults to same as table_name
                             final_carto_table_name=None, # overides final carto table - useful for testing like test_table
                             schedule_interval='0 7 * * *', # defaults to 7am UTC (2am EST)
-                            retries=0):
+                            retries=0,
+                            to_srid=None,
+                            from_srid=None):
     dag_id = 'etl_carto_geodb2_{}'.format(table_name)
 
     default_args = {
@@ -38,7 +40,9 @@ def carto_geodb2_dag_factory(geodb2_schema,
         table_name=geodb2_table_name or table_name,
         geometry_support= geometry_support,
         connection_string='"$GEODB2_CONN_STRING"',
-        output_file=data_file
+        output_file=data_file,
+        to_srid=to_srid,
+        from_srid=from_srid
     )
 
     postgis_geometry_support = None
@@ -117,7 +121,9 @@ carto_geodb2_dag_factory('GIS_LNI',
                          's3://"$S3_SCHEMA_BUCKET"/li_imm_dang.json',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
-                         final_carto_table_name='awm_li_imm_dang')
+                         final_carto_table_name='awm_li_imm_dang',
+                         to_srid=2272,
+                         from_srid=4326)
 
 carto_geodb2_dag_factory('GIS_LNI',
                          'li_trade_licenses',
@@ -130,14 +136,18 @@ carto_geodb2_dag_factory('GIS_STREETS',
                          's3://"$S3_SCHEMA_BUCKET"/wastebaskets_big_belly.json',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
-                         final_carto_table_name='awm_wastebaskets_big_belly')
+                         final_carto_table_name='awm_wastebaskets_big_belly',
+                         to_srid=2272,
+                         from_srid=4326)
 
 carto_geodb2_dag_factory('GIS_WATERSHEDS',
                          'stormwater_grants',
                          's3://"$S3_SCHEMA_BUCKET"/stormwater_grants.json',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
-                         final_carto_table_name='awm_stormwater_grants')
+                         final_carto_table_name='awm_stormwater_grants',
+                         to_srid=2272,
+                         from_srid=4326)
 
 carto_geodb2_dag_factory('GIS_ODDT',
                          'employee_salaries',

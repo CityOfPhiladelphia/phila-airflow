@@ -23,6 +23,8 @@ class TheELOperator(BashOperator):
             input_file=None,
             skip_headers=False,
             output_file=None,
+            to_srid=None,
+            from_srid=None,
             *args, **kwargs):
 
         eastern_state_cmd = 'source <(eastern_state load_environment "$EASTERN_STATE_BUCKET" "$EASTERN_STATE_NAME" "$EASTERN_STATE_ENV") &&'
@@ -63,6 +65,12 @@ class TheELOperator(BashOperator):
 
         if skip_headers:
             bash_command += ' --skip-headers'
+
+        if from_srid != None:
+            bash_command += ' --from-srid {}'.format(from_srid)
+
+        if to_srid != None:
+            bash_command += ' --to-srid {}'.format(to_srid)
 
         kwargs['bash_command'] = bash_command
 
