@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import os
 
 from airflow import DAG
-from airflow.operators import TheELOperator, BashStreamOperator
+from airflow.operators import TheELOperator, BashStreamOperator, BashOperator
 from airflow.operators import SlackNotificationOperator
 
 default_args = {
@@ -20,13 +20,25 @@ schema_file = 's3://"$S3_STAGING_BUCKET"/schemas/etl_bev_tax_accounts.json'
 data_file = 's3://"$S3_STAGING_BUCKET"/etl_bev_tax_accounts_v1/{{run_id}}/etl_bev_tax_accounts.csv'
 
 ## TESTING
-transform_accounts = BashStreamOperator(
+# transform_accounts = BashStreamOperator(
+#     task_id='transform_accounts_data',
+#     dag=dag,
+#     bash_command='VALUE=$(cat); echo "$VALUE";',
+#     # bash_command='echo "foo"',
+#     input_file='s3://phl-etl-staging-dev/schemas/etl_bev_tax_accounts.json',
+#     output_file='s3://phl-etl-staging-dev/etl_bev_tax_accounts_v1/test.txt',
+#     params={
+#         'test_param': 'foo'
+#     }
+# )
+
+transform_accounts = BashOperator(
     task_id='transform_accounts_data',
     dag=dag,
-    bash_command='VALUE=$(cat); echo "$VALUE";',
-    # bash_command='echo "foo"',
-    input_file='s3://phl-etl-staging-dev/schemas/etl_bev_tax_accounts.json',
-    output_file='s3://phl-etl-staging-dev/etl_bev_tax_accounts_v1/test.txt'
+    bash_command='echo "Boooo";',
+    params={
+        'test_param': 'foo'
+    }
 )
 
 # extract_accounts_data = TheELOperator(
