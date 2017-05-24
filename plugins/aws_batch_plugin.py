@@ -37,8 +37,6 @@ class AWSBatchExecutor(BaseExecutor):
 
         response = self.batch_client.list_jobs(**params)
 
-        print(response)
-
         if len(response['jobSummaryList']) == 0:
             return
 
@@ -64,7 +62,6 @@ class AWSBatchExecutor(BaseExecutor):
             return datetime.strptime(str_datetime, '%Y-%m-%dT%H:%M:%S')
 
     def start(self):
-        print('AWSBatchPlugin - start')
         self.dagbag = models.DagBag(settings.DAGS_FOLDER)
 
         self.batch_client = boto3.client('batch')
@@ -73,8 +70,6 @@ class AWSBatchExecutor(BaseExecutor):
         self.default_job_definition = configuration.get('aws_batch', 'DEFAULT_JOB_DEFINITION')
 
         for job in self.get_jobs():
-            print(job)
-            print(job['status'])
             if job['status'] in ['SUBMITTED', 'PENDING', 'RUNNABLE', 'STARTING', 'RUNNING']:
                 params = job['parameters']
                 start_date = self.parse_key_datetime(params['start_date'])
@@ -84,32 +79,19 @@ class AWSBatchExecutor(BaseExecutor):
                 self.last_state[job['jobId']] = job['status']
 
     def has_task(self, task_instance):
-        print('AWSBatchPlugin - has_task')
-        print(task_instance.key)
-        print(self.queued_tasks)
-        print(self.running)
-        print(task_instance.key in self.running)
-        print(task_instance.key in self.queued_tasks or task_instance.key in self.running)
         if task_instance.key in self.queued_tasks or task_instance.key in self.running:
             return True
 
     def change_state(self, key, state):
-        print('AWSBatchPlugin - change_state')
-        print(key)
-        print(self.running)
         self.running.pop(key)
         self.event_buffer[key] = state
 
     def sync(self):
-        print('AWSBatchPlugin - sync')
-
         for job_ids in batch(list(self.tasks.keys()), 100):
             response = self.batch_client.describe_jobs(jobs=job_ids)
             for job in response['jobs']:
                 job_id = job['jobId']
                 state = job['status']
-                print(job_id)
-                print(state)
                 if self.last_state[job_id] != state:
                     if state == 'SUCCEEDED':
                         self.success(self.tasks[job_id])
@@ -124,8 +106,6 @@ class AWSBatchExecutor(BaseExecutor):
 
 
     def execute_async(self, key, command, queue=None):
-        print('AWSBatchPlugin - execute_async')
-
         dag = self.dagbag.get_dag(key[0])
         task = dag.get_task(key[1])
 
@@ -136,10 +116,6 @@ class AWSBatchExecutor(BaseExecutor):
 
         start_date = key[2].isoformat()
         start_date_job_name = key[2].isoformat().replace(':','-').replace('.','-')
-
-        print('{}__{}__{}'.format(dag.dag_id, task.task_id, start_date_job_name))
-
-        ## TODO: adjust heartbeat rate?
 
         response = self.batch_client.submit_job(
             jobName='{}__{}__{}'.format(dag.dag_id, task.task_id, start_date_job_name),
@@ -174,11 +150,10 @@ class AWSBatchExecutor(BaseExecutor):
         self.last_state[job_id] = 'SUBMITTED'
 
     def end(self):
-        print('AWSBatchPlugin - end')
         self.sync()
 
     def terminate(self):
-        print('AWSBatchPlugin - terminate')
+        pass
 
 class AWSBatchPlugin(AirflowPlugin):
     name = "aws_batch_plugin"
