@@ -94,12 +94,14 @@ carto_geodb2_dag_factory('GIS_OPA',
                          #retries=2
                          )
 
-# carto_geodb2_dag_factory('GIS_ODDT',
-#                          'opa_properties_public',
-#                          's3://"$S3_SCHEMA_BUCKET"/opa_properties_public.json',
-#                          geometry_support='sde-char',
-#                          schedule_interval='0 6 * * *',
-#                          final_carto_table_name='awm_opa_properties_public')
+carto_geodb2_dag_factory('GIS_ODDT',
+                         'opa_properties_public',
+                         's3://"$S3_SCHEMA_BUCKET"/opa_properties_public.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 6 * * *',
+                         final_carto_table_name='awm_opa_properties_public',
+                         from_srid=2272,
+                         to_srid=4326)
 
 carto_geodb2_dag_factory('GIS_311',
                          'public_cases_fc',
@@ -109,12 +111,39 @@ carto_geodb2_dag_factory('GIS_311',
                          #retries=2
                          )
 
-# carto_geodb2_dag_factory('GIS_POLICE',
-#                          'incidents_part1_part2',
-#                          's3://"$S3_SCHEMA_BUCKET"/incidents_part1_part2.json',
-#                          geometry_support='sde-char',
-#                          schedule_interval='0 7 * * *',
-#                          final_carto_table_name='awm_incidents_part1_part2')
+carto_geodb2_dag_factory('GIS_POLICE',
+                         'incidents_part1_part2',
+                         's3://"$S3_SCHEMA_BUCKET"/incidents_part1_part2.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_incidents_part1_part2')
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_appeals',
+                         's3://"$S3_SCHEMA_BUCKET"/li_appeals.json',
+                         geometry_support='sde-char',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_appeals',
+                         from_srid=2272,
+                         to_srid=4326)
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_appeals_type',
+                         's3://"$S3_SCHEMA_BUCKET"/li_appeals_type.json',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_appeals_type')
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_board_decisions',
+                         's3://"$S3_SCHEMA_BUCKET"/li_board_decisions.json',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_board_decisions')
+
+carto_geodb2_dag_factory('GIS_LNI',
+                         'li_court_appeals',
+                         's3://"$S3_SCHEMA_BUCKET"/li_court_appeals.json',
+                         schedule_interval='0 7 * * *',
+                         final_carto_table_name='awm_li_court_appeals')
 
 carto_geodb2_dag_factory('GIS_LNI',
                          'li_imm_dang',
@@ -136,7 +165,7 @@ carto_geodb2_dag_factory('GIS_STREETS',
                          's3://"$S3_SCHEMA_BUCKET"/wastebaskets_big_belly.json',
                          geometry_support='sde-char',
                          schedule_interval='0 7 * * *',
-                         final_carto_table_name='awm_wastebaskets_big_belly',
+                         final_carto_table_name='wastebaskets_big_belly',
                          from_srid=2272,
                          to_srid=4326)
 
@@ -153,4 +182,4 @@ carto_geodb2_dag_factory('GIS_ODDT',
                          'employee_salaries',
                          's3://"$S3_SCHEMA_BUCKET"/employee_salaries.json',
                          schedule_interval='0 7 * * *',
-                         final_carto_table_name='awm_employee_salaries')
+                         final_carto_table_name='employee_salaries')
